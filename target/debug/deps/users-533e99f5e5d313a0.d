@@ -1,0 +1,12 @@
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\users-533e99f5e5d313a0.rmeta: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\base.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\cache.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\mock.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\switch.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\traits.rs
+
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\libusers-533e99f5e5d313a0.rlib: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\base.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\cache.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\mock.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\switch.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\traits.rs
+
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\users-533e99f5e5d313a0.d: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\base.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\cache.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\mock.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\switch.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\traits.rs
+
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\lib.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\base.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\cache.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\mock.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\switch.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\users-0.10.0\src\traits.rs:

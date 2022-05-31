@@ -1,0 +1,11 @@
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\libc-36be8887c76fa914.rmeta: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\macros.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\fixed_width_ints.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\mod.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\msvc\mod.rs
+
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\liblibc-36be8887c76fa914.rlib: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\macros.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\fixed_width_ints.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\mod.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\msvc\mod.rs
+
+C:\Users\Ilnur\CLionProjects\RUST_TEST\several_desktops\target\debug\deps\libc-36be8887c76fa914.d: C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\lib.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\macros.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\fixed_width_ints.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\mod.rs C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\msvc\mod.rs
+
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\lib.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\macros.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\fixed_width_ints.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\mod.rs:
+C:\Users\Ilnur\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.126\src\windows\msvc\mod.rs:
