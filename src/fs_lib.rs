@@ -20,7 +20,12 @@ fn path_join<'a>(path1: &'a Path, path2: &'a Path) -> PathBuf {
 }
 
 /// function to copy directory and all files and directories inside it
-pub fn copy_dir<'a>(from_path: &'a Path, to_path: &'a Path, dir_name: &'a Path, black_list: &[Path]) -> std::io::Result<()> {
+pub fn copy_dir<'a>(
+    from_path: &'a Path,
+    to_path: &'a Path,
+    dir_name: &'a Path,
+    black_list: &[Path],
+) -> std::io::Result<()> {
     let mut new_pathbuf = path_join(to_path, dir_name);
     let mut new_path = new_pathbuf.as_path();
     create_dir_all(new_path)?;
@@ -31,19 +36,27 @@ pub fn copy_dir<'a>(from_path: &'a Path, to_path: &'a Path, dir_name: &'a Path, 
 
     if let Ok(files) = files_in_dir(from_path) {
         for file in files {
-            let filename_s = file.file_name().into_string().expect("Failed to read filename");
+            let filename_s = file.file_name().into_string()?;
             let filename = Path::new(filename_s.trim());
-            let filetype = file.file_type().expect("Failed to read filetype");
+            let filetype = file.file_type()?;
 
             if black_list.contains(path_join(from_path, filename)) {
                 continue;
             }
 
             if filetype.is_file() {
-                copy_file(path_join(from_path, filename).as_path(), path_join(new_path, filename).as_path());
+                copy_file(
+                    path_join(from_path, filename).as_path(),
+                    path_join(new_path, filename).as_path(),
+                )?;
             } else if filetype.is_dir() {
-                copy_dir(path_join(from_path, filename).as_path(), new_path, filename, black_list);
-            } else { return Err(()); }
+                copy_dir(
+                    path_join(from_path, filename).as_path(),
+                    new_path,
+                    filename,
+                    black_list,
+                )?;
+            }
         }
     }
     Ok(())
