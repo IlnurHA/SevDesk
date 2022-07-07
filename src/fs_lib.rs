@@ -89,7 +89,7 @@ pub fn move_all_files(
         .map(|x| from_dir.join(Path::new(&x)))
         .collect();
 
-    println!("{:?}", files);
+    // println!("{:?}", files);
 
     for file in files {
         fs_extra::move_items(
@@ -99,5 +99,16 @@ pub fn move_all_files(
         );
     }
 
+    Ok(())
+}
+
+pub fn create_soft_links(files: &[&Path], destination: &Path) -> Result<()> {
+    for file in files {
+        if file.is_file() {
+            fs::symlink_file(file, destination.join(file).as_path())?;
+        } else if file.is_dir() {
+            fs::symlink_dir(file, destination.join(file).as_path())?;
+        }
+    }
     Ok(())
 }
