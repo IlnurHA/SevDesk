@@ -54,17 +54,23 @@ pub fn copy_dir<'a>(
             }
 
             if filetype.is_file() {
-                copy_file(
+                match copy_file(
                     path_join(from_path, filename).as_path(),
                     path_join(new_path, filename).as_path(),
-                )?;
+                ) {
+                    Ok(_) => (),
+                    Err(message) => println!("{} - {}", filename_s, message),
+                };
             } else if filetype.is_dir() {
-                copy_dir(
+                match copy_dir(
                     path_join(from_path, filename).as_path(),
                     new_path,
                     filename,
                     black_list,
-                )?;
+                ) {
+                    Err(message) => println!("{} - {}", filename_s, message),
+                    _ => (),
+                };
             }
         }
     }
@@ -75,6 +81,7 @@ pub fn move_all_files(
     from_dir: &Path,
     inside_another_dir: &Path,
     black_list: &[&Path],
+    to_overwrite: bool,
 ) -> std::io::Result<()> {
     create_dir_all(inside_another_dir)?;
 
@@ -89,25 +96,28 @@ pub fn move_all_files(
         .map(|x| from_dir.join(Path::new(&x)))
         .collect();
 
-    // println!("{:?}", files);
+    let mut copy_option = fs_extra::dir::CopyOptions::new();
+    copy_option.overwrite = to_overwrite;
+
+    println!("{:?}", files);
 
     for file in files {
         fs_extra::move_items(
             &Vec::from([file.as_path()]),
             inside_another_dir,
-            &fs_extra::dir::CopyOptions::new(),
+            &copy_option,
         );
     }
 
     Ok(())
 }
 
-pub fn create_soft_links(files: &[&Path], destination: &Path) -> Result<()> {
+pub fn create_soft_links(files: &[&Path], destination: &Path) -> std::io::Result<()> {
     for file in files {
         if file.is_file() {
-            fs::symlink_file(file, destination.join(file).as_path())?;
+            std::os::windows::fs::symlink_file(file, destination.join(file).as_path())?;
         } else if file.is_dir() {
-            fs::symlink_dir(file, destination.join(file).as_path())?;
+            std::os::windows::fs::symlink_dir(file, destination.join(file).as_path())?;
         }
     }
     Ok(())
