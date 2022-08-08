@@ -133,3 +133,19 @@ pub fn create_soft_links(files: &[&Path], destination: &Path) -> std::io::Result
     }
     Ok(())
 }
+
+pub fn remove_entity(entity_name: &String, directory: &Path) -> std::io::Result<()> {
+    let mut entity_path_buf = directory.join(entity_name);
+    let mut entity_path = entity_path_buf.as_path();
+
+    remove_entity_as_path(entity_path)?
+}
+
+pub fn remove_entity_as_path(entity_path: &Path) -> std::io::Result<()> {
+    if file.is_dir() {
+        std::fs::remove_dir_all(entity_path)?;
+    } else if file.is_file() {
+        std::fs::remove_file(entity_path)?;
+    }
+    Ok(())
+}
