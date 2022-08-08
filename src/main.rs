@@ -28,8 +28,8 @@ fn main() {
     //
     // fs_lib::copy_dir(path_default, path_base, Path::new("dir1"), &[]).expect("Copy failed");
     // // fs_lib::move_all_files(path1, path2, &[]).expect("Move failed");
-    logic::first_start(
-        Path::new("C:/Users/Ilnur/Рабочий стол"),
-        Path::new("C:/rust"),
-    );
+    // logic::first_start(
+    //     Path::new("C:/Users/Ilnur/Рабочий стол"),
+    //     Path::new("C:/rust"),
+    // );
 }

@@ -2,65 +2,67 @@ use crate::fs_lib;
 use crate::model::Desktop;
 use std::fs::*;
 use std::path::Path;
+use std::path::PathBuf;
 
-// TODO: allocate, check for repetitions
+fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
+    Ok(fs_lib::files_in_dir(from_dir)?
+        .iter()
+        .map(|file| {
+            file.file_name()
+                .into_string()
+                .expect("Cannot get string of filename")
+        })
+        .map(|x| from_dir.join(Path::new(&x)))
+        .collect())
+}
 
-// fn check_for_repetitions(desktop_name: String, desktops: Hashmap<String, Desktop>) {}
+// TODO: Expects
+pub fn allocate_new_desktop(desktop_name: String, path_of_base: &Path) -> Result<Desktop, String> {
+    // if !desktops.into_iter().find(|x| x == desktop_name).is_none() {
+    //     return Err("Desktop with this name exists");
+    // }
 
-pub fn allocate_new_desktop(
-    desktop_name: String,
-    path_of_base: &Path,
-    desktops: &Vec<String>,
-) -> Result<Desktop, String> {
-    if !desktops.into_iter().find(|x| x == desktop_name).is_none() {
-        return Err("Desktop with this name exists");
-    }
-
-    let mut new_desktop_path_buf = path_of_base.join(Path::new("desktops"));
+    let mut desktops_path_buf = path_of_base.join(Path::new("desktops"));
+    let mut new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(&desktop_name));
     let mut new_desktop_path = new_desktop_path_buf.as_path();
 
-    fs_lib::create_dir_all(&new_desktop_path).expect("");
+    if new_desktop_path.is_dir() {
+        return Err("Desktop with this name exists".to_owned());
+    }
 
-    let mut new_desktop = Desktop::new(desktop_name, new_desktop_path);
+    std::fs::create_dir_all(&new_desktop_path).expect("");
+    let mut new_desktop = Desktop::new(desktop_name.clone(), new_desktop_path_buf);
 
     Ok(new_desktop)
 }
 
 pub fn change_desktop(
-    current_desktop: Desktop,
-    second_desktop: Desktop,
+    current_desktop: &Desktop,
+    second_desktop: &Desktop,
     desktop_path: &Path,
     top_level_entities_path: &Path,
-    desktops: &Vec<String>,
-) -> Result<Desktop, String> {
+) -> Result<(), String> {
     // Check for existence of current and second desktop
-    if desktops
-        .into_iter()
-        .find(|x| x == current_desktop.name)
-        .is_none()
-    {
-        return Err("No such desktop");
-    }
-
-    if desktops
-        .into_iter()
-        .find(|x| x == second_desktop.name)
-        .is_none()
-    {
-        return Err("No such desktop");
+    if !current_desktop.path.is_dir() || !second_desktop.path.is_dir() {
+        return Err("No such desktop".to_owned());
     }
     // =============================================
 
-    fs_lib::move_all_files(desktop_path, current_desktop.path, &[], true);
-    fs_lib::move_all_files(second_desktop.path, desktop_path, &[], false);
+    fs_lib::move_all_files(desktop_path, current_desktop.path.as_path(), &[], true);
+    fs_lib::move_all_files(second_desktop.path.as_path(), desktop_path, &[], false);
 
     // Create link of top level entities
     // fs_lib::create_soft_links()
 
-    Ok(second_desktop)
+    let mut files =
+        files_of(top_level_entities_path).expect("Failed to read top-level entities from folder");
+    fs_lib::create_soft_links(&files, desktop_path)
+        .expect("Failed to create soft links of top-level entities");
+
+    Ok(())
 }
 
-pub fn first_start<'a>(path_of_desktop: &'a Path, path_of_base: &'a Path) -> Desktop<'a> {
+pub fn first_start<'a>(path_of_desktop: &'a Path, path_of_base: &'a Path) -> Desktop {
     let base_path_for_desktops_buf = path_of_base.join(Path::new("desktops"));
     let base_path_for_desktops = base_path_for_desktops_buf.as_path();
     let blank_path = path_of_base.join(Path::new("blank"));
@@ -88,7 +90,7 @@ pub fn first_start<'a>(path_of_desktop: &'a Path, path_of_base: &'a Path) -> Des
         _ => (),
     };
 
-    return Desktop::new("FirstDesktop".to_owned(), path_of_desktop);
+    return Desktop::new("FirstDesktop".to_owned(), path_of_desktop.to_owned());
 }
 
 pub fn make_top_level_entity(
@@ -99,42 +101,58 @@ pub fn make_top_level_entity(
     let mut top_level_path_buf = base_path.join(Path::new("topFiles"));
     let mut top_level_path = top_level_path_buf.as_path();
 
+    let files = files_of(top_level_path).expect("Can't read top-level entities");
+    for file in files {
+        if let Some(filename) = file.as_path().file_name() {
+            if (*filename).to_str().to_owned().unwrap() == file_name {
+                return Err("File with this name is existing as top-level entity".to_string());
+            }
+        }
+    }
+
     let mut file_path_buf = desktop_path.join(Path::new(file_name));
     let mut file_path = file_path_buf.as_path();
 
-    fs_lib::move_file(file_name, desktop_path, top_level_path, false);
+    fs_lib::move_one_file(file_name.to_owned(), desktop_path, top_level_path, false);
 
-    let mut links = [file_path];
+    let mut links = [file_path_buf];
     fs_lib::create_soft_links(&links, desktop_path);
 
     Ok(())
 }
 
-pub fn remove_top_level_entity(file_name: &String, desktop_path: &Path, base_path: &Path) {
+pub fn remove_top_level_entity(
+    file_name: &String,
+    desktop_path: &Path,
+    base_path: &Path,
+) -> Result<(), String> {
+    let mut desktop_files = files_of(desktop_path).expect("Cannot read files of current desktop");
+    for file in desktop_files {
+        if let Some(filename) = file.as_path().file_name() {
+            if filename.to_str().unwrap().to_string() == file_name.to_string() {
+                return Err(
+                    "Entity with such name has already exist in the current desktop".to_string(),
+                );
+            }
+        }
+    }
+
     let mut top_level_path_buf = base_path.join(Path::new("topFiles"));
     let mut top_level_path = top_level_path_buf.as_path();
 
     fs_lib::remove_entity(file_name, desktop_path);
-
-    fs_lib::move_file(file_name, top_level_path, desktop_path);
+    fs_lib::move_one_file(file_name.to_string(), top_level_path, desktop_path, false);
+    Ok(())
 }
 
 // TODO: removal of files and directories
 pub fn remove_desktop(desktop: &Desktop) -> Result<(), String> {
-    let mut files: Vec<_> = files_in_dir(desktop.path)
-        .expect("Cannot read all files in this desktop")
-        .iter()
-        .map(|file| {
-            file.file_name()
-                .into_string()
-                .expect("Cannot get string of filename")
-        })
-        .map(|x| from_dir.join(Path::new(&x)))
-        .collect();
+    let mut files: Vec<_> =
+        files_of(desktop.path.as_path()).expect("Can't read files from current desktop");
 
     for file in files {
-        fs_lib::remove_entity_as_path(file).expect("Cannot delete file");
+        fs_lib::remove_entity_as_path(file.as_path()).expect("Cannot delete file");
     }
-    fs_lib::remove_entity_as_path(desktop.path).expect("Cannot delete desktop folder");
+    fs_lib::remove_entity_as_path(desktop.path.as_path()).expect("Cannot delete desktop folder");
     Ok(())
 }
