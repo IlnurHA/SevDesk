@@ -77,6 +77,17 @@ pub fn copy_dir<'a>(
     Ok(())
 }
 
+// TODO: move one file
+pub fn move_one_file(file_name: String, from_dir: &Path, to_dir: &Path, to_overwrite: bool) {
+    let mut file_path_buf = from_dir.join(Path::new(file_name));
+    let mut file_path = file_path_buf.as_path();
+
+    let mut copy_option = fs_extra::dir::CopyOptions::new();
+    copy_option.overwrite = to_overwrite;
+
+    fs_extra::move_items(&Vec::from([Path::new(file_path)], to_dir, &copy_option));
+}
+
 pub fn move_all_files(
     from_dir: &Path,
     inside_another_dir: &Path,
