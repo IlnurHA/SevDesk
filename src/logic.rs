@@ -114,12 +114,27 @@ pub fn remove_top_level_entity(file_name: &String, desktop_path: &Path, base_pat
     let mut top_level_path_buf = base_path.join(Path::new("topFiles"));
     let mut top_level_path = top_level_path_buf.as_path();
 
-    //     TODO: delete soft link
+    fs_lib::remove_entity(file_name, desktop_path);
 
     fs_lib::move_file(file_name, top_level_path, desktop_path);
 }
 
 // TODO: removal of files and directories
-// pub fn remove_desktop(desktop: &Desktop) {
-//
-// }
+pub fn remove_desktop(desktop: &Desktop) -> Result<(), String> {
+    let mut files: Vec<_> = files_in_dir(desktop.path)
+        .expect("Cannot read all files in this desktop")
+        .iter()
+        .map(|file| {
+            file.file_name()
+                .into_string()
+                .expect("Cannot get string of filename")
+        })
+        .map(|x| from_dir.join(Path::new(&x)))
+        .collect();
+
+    for file in files {
+        fs_lib::remove_entity_as_path(file).expect("Cannot delete file");
+    }
+    fs_lib::remove_entity_as_path(desktop.path).expect("Cannot delete desktop folder");
+    Ok(())
+}
