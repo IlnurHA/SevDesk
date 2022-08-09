@@ -40,16 +40,18 @@ pub fn change_desktop(
     current_desktop: &Desktop,
     second_desktop: &Desktop,
     desktop_path: &Path,
-    top_level_entities_path: &Path,
+    base_path: &Path,
 ) -> Result<(), String> {
     // Check for existence of current and second desktop
-    if !current_desktop.path.is_dir() || !second_desktop.path.is_dir() {
+    if !current_desktop.path_buf.is_dir() || !second_desktop.path_buf.is_dir() {
         return Err("No such desktop".to_owned());
     }
     // =============================================
+    let top_level_entities_path_buf = base_path.join("topFiles");
+    let top_level_entities_path = top_level_entities_path_buf.as_path();
 
-    fs_lib::move_all_files(desktop_path, current_desktop.path.as_path(), &[], true);
-    fs_lib::move_all_files(second_desktop.path.as_path(), desktop_path, &[], false);
+    fs_lib::move_all_files(desktop_path, current_desktop.path_buf.as_path(), &[], true);
+    fs_lib::move_all_files(second_desktop.path_buf.as_path(), desktop_path, &[], false);
 
     // Create link of top level entities
     // fs_lib::create_soft_links()
@@ -145,14 +147,15 @@ pub fn remove_top_level_entity(
     Ok(())
 }
 
-// TODO: removal of files and directories
+// TODO: removal of files and directories of current desktop
 pub fn remove_desktop(desktop: &Desktop) -> Result<(), String> {
     let mut files: Vec<_> =
-        files_of(desktop.path.as_path()).expect("Can't read files from current desktop");
+        files_of(desktop.path_buf.as_path()).expect("Can't read files from current desktop");
 
     for file in files {
         fs_lib::remove_entity_as_path(file.as_path()).expect("Cannot delete file");
     }
-    fs_lib::remove_entity_as_path(desktop.path.as_path()).expect("Cannot delete desktop folder");
+    fs_lib::remove_entity_as_path(desktop.path_buf.as_path())
+        .expect("Cannot delete desktop folder");
     Ok(())
 }

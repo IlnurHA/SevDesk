@@ -1,6 +1,8 @@
+mod command_handler;
 mod fs_lib;
 mod logic;
 mod model;
+mod tools;
 
 use std::fs::*;
 use std::io::{Read, Write};
@@ -32,4 +34,14 @@ fn main() {
     //     Path::new("C:/Users/Ilnur/Рабочий стол"),
     //     Path::new("C:/rust"),
     // );
+    if !Path::new("C:/rust").is_dir()
+        || !Path::new("C:/rust/backup").is_dir()
+        || !Path::new("C:/rust/topFiles").is_dir()
+        || !Path::new("C:/rust/blank").is_dir()
+        || !Path::new("C:/rust/desktops").is_dir()
+    {
+        println!("Please enter path to the main desktop");
+        let desktop_path = read_line();
+        logic::first_start(Path::new(&desktop_path), Path::new("C:/rust"));
+    }
 }
