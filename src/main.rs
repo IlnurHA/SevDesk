@@ -2,46 +2,57 @@ mod command_handler;
 mod fs_lib;
 mod logic;
 mod model;
+mod regchange;
 mod tools;
 
-use std::fs::*;
+use pyo3::prelude::*;
+use std::io;
 use std::io::{Read, Write};
-use std::path::Path;
-use std::{fs, io};
-
-use fs_extra::dir::move_dir;
 
 // to handle console commands
 fn read_line() -> String {
     let mut buffer = String::new();
-    io::stdin().read_line(&mut buffer);
-    buffer
+    io::stdin()
+        .read_line(&mut buffer)
+        .expect("Could not read line");
+    buffer.trim().to_string()
 }
 
 fn main() {
-    // let path_default = Path::new("C:/rust/default");
-    // let path_base = Path::new("C:/rust");
-    // let path1 = Path::new("C:/rust/dir1");
-    // let path2 = Path::new("C:/rust/dir2");
+    //     pyo3::prepare_freethreaded_python();
+    //     let py_script_for_elevation = r#"
+    // def elevation():
+    //     import ctypes, sys
     //
-    // // let path3 = Path::new("C:/rust/dir3");
+    //     def is_admin():
+    //         try:
+    //             return ctypes.windll.shell32.IsUserAnAdmin()
+    //         except:
+    //             return False
     //
-    // // fs::hard_link(path1, path3).expect("You cannot create hard link for these files");
-    //
-    // fs_lib::copy_dir(path_default, path_base, Path::new("dir1"), &[]).expect("Copy failed");
-    // // fs_lib::move_all_files(path1, path2, &[]).expect("Move failed");
-    // logic::first_start(
-    //     Path::new("C:/Users/Ilnur/Рабочий стол"),
-    //     Path::new("C:/rust"),
-    // );
-    if !Path::new("C:/rust").is_dir()
-        || !Path::new("C:/rust/backup").is_dir()
-        || !Path::new("C:/rust/topFiles").is_dir()
-        || !Path::new("C:/rust/blank").is_dir()
-        || !Path::new("C:/rust/desktops").is_dir()
-    {
-        println!("Please enter path to the main desktop");
-        let desktop_path = read_line();
-        logic::first_start(Path::new(&desktop_path), Path::new("C:/rust"));
+    //     if not is_admin():
+    //         # Re-run the program with admin rights
+    //         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    //         exit(0)
+    //     "#;
+    //     Python::with_gil(|py| {
+    //         let py_script = PyModule::from_code(py, py_script_for_elevation, "elevation", "elevation")
+    //             .expect("Cannot read py script");
+    //         py_script
+    //             .getattr("elevation")
+    //             .expect("Cannot get function 'elevation' from python script")
+    //             .call0()
+    //             .expect("Cannot call function");
+    //     });
+
+    println!("Enter current desktop:");
+    let desktop_path = read_line();
+    println!("Enter base path for desktop storage:");
+    let base_path = read_line();
+
+    println!("System loaded!");
+    let mut command_handler = command_handler::CommandHandler::new(desktop_path, base_path);
+    loop {
+        command_handler.read_command();
     }
 }

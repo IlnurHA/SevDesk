@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 fs_extra = "1.2.0"
+pyo3 = "0.16.5"

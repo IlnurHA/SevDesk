@@ -32,8 +32,8 @@ pub fn copy_dir<'a>(
     dir_name: &'a Path,
     black_list: &[&Path],
 ) -> std::io::Result<()> {
-    let mut new_pathbuf = path_join(to_path, dir_name);
-    let mut new_path = new_pathbuf.as_path();
+    let new_pathbuf = path_join(to_path, dir_name);
+    let new_path = new_pathbuf.as_path();
     create_dir_all(new_path)?;
 
     if black_list.contains(&new_path) {
