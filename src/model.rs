@@ -1,31 +1,41 @@
 use crate::fs_lib;
 use std::path::{Path, PathBuf};
 
-#[derive(Hash, Eq, PartialEq, Debug)]
-pub struct Desktop {
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+pub struct SpecificDesktop {
     pub name: String,
-    pub path_buf: PathBuf,
+    pub path: String,
 }
 
-impl Desktop {
-    pub fn new(name: String, path_buf: PathBuf) -> Self {
-        Self { name, path_buf }
+impl SpecificDesktop {
+    pub fn new(name: String, path: String) -> Self {
+        Self { name, path }
     }
-
-    // pub fn swap_desktops(
-    //     desktop1: &'a Desktop,
-    //     desktop2: &'a Desktop,
-    // ) -> (Desktop<'a>, Desktop<'a>) {
-    //     let new_desktop1 = Desktop::new(desktop1.name.clone(), desktop2.path);
-    //     let new_desktop2 = Desktop::new(desktop2.name.clone(), desktop1.path);
-    //     return (new_desktop1, new_desktop2);
-    // }
 }
 
-enum Action {
-    ChangeDesk { desk_name: String },
-    CreateDesk { desk_name: String },
-    RemoveDesk { desk_name: String },
-    MakeTopLevel { entity_name: String },
-    MakeNonTopLevel { entity_name: String },
+pub enum Action {
+    ChangeDesk {
+        desk_name: String,
+    },
+    CreateDesk {
+        desk_name: String,
+    },
+    RemoveDesk {
+        desk_name: String,
+    },
+    CreateSpecificDesktop {
+        desk_name: String,
+        path: String,
+    },
+
+    CreateBind {
+        bind_name: String,
+        desk_name: String,
+    },
+    UseBind {
+        bind_name: String,
+    },
+    RemoveBind {
+        bind_name: String,
+    },
 }
