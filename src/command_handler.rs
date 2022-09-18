@@ -23,7 +23,7 @@ impl CommandHandler {
         // TODO: Add loading of settings
 
         let mut desktops_path: String = base_path.clone();
-        desktops_path.push_str("//");
+        desktops_path.push_str("\\");
         desktops_path.push_str("desktops");
 
         Self {
@@ -55,14 +55,11 @@ impl CommandHandler {
                     &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
                     desk_name.clone(),
                     |x: PathBuf| {
-                        let string = x
-                            .file_name()
+                        x.file_name()
                             .expect("Cannot find name of given path")
                             .to_str()
                             .expect("Cannot convert &str from PathBuf")
-                            .to_string();
-                        println!("{}", string);
-                        string
+                            .to_string()
                     },
                 )
                 .is_some()
@@ -128,10 +125,10 @@ impl CommandHandler {
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
-                if let Some(specific_desktop) =
+                return if let Some(specific_desktop) =
                     tools::find(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
-                    return logic::remove_specific_desktop(&specific_desktop);
+                    logic::remove_specific_desktop(&specific_desktop)
                 } else if tools::find(
                     &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
                     desk_name.clone(),
@@ -145,10 +142,10 @@ impl CommandHandler {
                 )
                 .is_some()
                 {
-                    return logic::remove_common_desktop(&desk_name, &self.base_path);
+                    logic::remove_common_desktop(&desk_name, &self.base_path)
                 } else {
-                    return Err("There is no such desktop".to_string());
-                }
+                    Err("There is no such desktop".to_string())
+                };
             }
 
             model::Action::CreateBind {
@@ -227,32 +224,45 @@ impl CommandHandler {
                 desk_name: command_args.collect::<String>(),
             }),
             "create_specific_desk" => {
-                let path = command_args
-                    .next()
-                    .expect("There should be one more argument");
-                let desk_name = command_args.collect::<String>();
+                let path_option = command_args.next();
+                if path_option.is_none() {
+                    return Err("There should be one more argument".to_string());
+                }
+                let path = path_option.unwrap();
+
+                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::CreateSpecificDesktop {
                     desk_name,
                     path: path.to_string(),
                 })
             }
-            "remove_desk" => self.handle(model::Action::RemoveDesk {
-                desk_name: command_args.collect::<String>(),
-            }),
+            "remove_desk" => {
+                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name = desk_name_vec.join(" ");
+                self.handle(model::Action::RemoveDesk { desk_name })
+            }
             "bind" => {
-                let bind_name = command_args
-                    .next()
-                    .expect("There should be one more argument");
-                let desk_name = command_args.collect::<String>();
+                let bind_name_option = command_args.next();
+                if bind_name_option.is_none() {
+                    return Err("There should be one more argument".to_string());
+                }
+                let bind_name = bind_name_option.unwrap();
+
+                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::CreateBind {
                     bind_name: bind_name.to_string(),
                     desk_name,
                 })
             }
             "unbind" => {
-                let bind_name = command_args
-                    .next()
-                    .expect("There should be one more argument");
+                let bind_name_option = command_args.next();
+                if bind_name_option.is_none() {
+                    return Err("There should be one more argument".to_string());
+                }
+                let bind_name = bind_name_option.unwrap();
+
                 self.handle(model::Action::RemoveBind {
                     bind_name: bind_name.to_string(),
                 })
@@ -269,7 +279,7 @@ impl CommandHandler {
         std::io::stdin().read_line(&mut buffer);
 
         if let Err(message) = self.parse_command(buffer) {
-            println!("Failed to make command: \n\t{}", message);
+            println!("Failed to parse command: \n\t{}", message);
         } else {
             println!("Command successfully handled!");
         }

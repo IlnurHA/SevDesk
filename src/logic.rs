@@ -93,14 +93,13 @@ pub fn remove_specific_desktop(desktop: &SpecificDesktop) -> Result<(), String> 
 
 pub fn remove_common_desktop(desktop_name: &String, path_of_base: &String) -> Result<(), String> {
     let mut desktop_path = path_of_base.to_string().clone();
-    desktop_path.push_str("//desktops//");
+    desktop_path.push_str("\\desktops\\");
     desktop_path.push_str(desktop_name);
 
     base_remove_desktop(&desktop_path)
 }
 
 fn base_remove_desktop(desktop_path: &String) -> Result<(), String> {
-    println!("{}", desktop_path);
     let mut files: Vec<_> = files_of(desktop_path).expect("Can't read files from current desktop");
 
     for file in files {
