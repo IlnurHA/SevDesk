@@ -8,6 +8,7 @@ mod tools;
 use pyo3::prelude::*;
 use std::io;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 
 // to handle console commands
 fn read_line() -> String {
@@ -45,13 +46,11 @@ def elevation():
             .expect("Cannot call function");
     });
 
-    println!("Enter current desktop:");
-    let desktop_path = read_line();
     println!("Enter base path for desktop storage:");
     let base_path = read_line();
 
     println!("System loaded!");
-    let mut command_handler = command_handler::CommandHandler::new(desktop_path, base_path);
+    let mut command_handler = command_handler::CommandHandler::new(PathBuf::from(base_path));
     loop {
         command_handler.read_command();
     }

@@ -10,25 +10,24 @@ use std::process::Command;
 pub struct CommandHandler {
     pub current_desktop: String,
     pub specific_desktops: Vec<model::SpecificDesktop>,
-    pub base_path: String,
-    pub desktops_path: String,
+    pub base_path: PathBuf,
+    pub desktops_path: PathBuf,
     pub binds: Vec<(String, String)>,
 }
 
 impl CommandHandler {
-    pub fn new(desktop_path: String, base_path: String) -> Self {
+    pub fn new(base_path: PathBuf) -> Self {
         let blank_path = PathBuf::from(&base_path).push("blank");
         let current_desktop = "original".to_string();
 
         // TODO: Add loading of settings
 
-        let mut desktops_path: String = base_path.clone();
-        desktops_path.push_str("\\");
-        desktops_path.push_str("desktops");
+        let mut desktops_path: PathBuf = base_path.clone();
+        desktops_path.push("desktops");
 
         Self {
             current_desktop,
-            specific_desktops: vec![logic::first_start(&desktop_path, &base_path)],
+            specific_desktops: vec![],
             base_path,
             desktops_path,
             binds: vec![],
@@ -142,7 +141,7 @@ impl CommandHandler {
                 )
                 .is_some()
                 {
-                    logic::remove_common_desktop(&desk_name, &self.base_path)
+                    logic::remove_common_desktop(&desk_name, self.base_path.as_path())
                 } else {
                     Err("There is no such desktop".to_string())
                 };
@@ -234,7 +233,7 @@ impl CommandHandler {
                 let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::CreateSpecificDesktop {
                     desk_name,
-                    path: path.to_string(),
+                    path: PathBuf::from(path),
                 })
             }
             "remove_desk" => {
