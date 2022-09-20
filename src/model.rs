@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct SpecificDesktop {
     pub name: String,
-    pub path: String,
+    pub path: PathBuf,
 }
 
 impl SpecificDesktop {
-    pub fn new(name: String, path: String) -> Self {
+    pub fn new(name: String, path: PathBuf) -> Self {
         Self { name, path }
     }
 }
@@ -25,7 +25,7 @@ pub enum Action {
     },
     CreateSpecificDesktop {
         desk_name: String,
-        path: String,
+        path: PathBuf,
     },
 
     CreateBind {
