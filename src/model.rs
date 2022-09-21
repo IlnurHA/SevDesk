@@ -1,5 +1,4 @@
-use crate::fs_lib;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct SpecificDesktop {
