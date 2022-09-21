@@ -1,10 +1,9 @@
-use crate::fs_lib;
+// use crate::fs_lib;
 use crate::logic;
 use crate::model;
 use crate::tools;
 use pyo3::prelude::*;
 use std::path::PathBuf;
-use std::process::Command;
 
 // binds is a vector that contains item of key and value ( binds: [(<bind_name>, <desk_name>)] )
 pub struct CommandHandler {
@@ -17,7 +16,6 @@ pub struct CommandHandler {
 
 impl CommandHandler {
     pub fn new(base_path: PathBuf) -> Self {
-        let blank_path = PathBuf::from(&base_path).push("blank");
         let current_desktop = "original".to_string();
 
         // TODO: Add loading of settings
@@ -215,7 +213,7 @@ impl CommandHandler {
             .expect("There should be at least one word")
         {
             "change_desk" => {
-                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name_vec = command_args.collect::<Vec<_>>();
                 let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::ChangeDesk { desk_name })
             }
@@ -229,7 +227,7 @@ impl CommandHandler {
                 }
                 let path = path_option.unwrap();
 
-                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name_vec = command_args.collect::<Vec<_>>();
                 let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::CreateSpecificDesktop {
                     desk_name,
@@ -237,7 +235,7 @@ impl CommandHandler {
                 })
             }
             "remove_desk" => {
-                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name_vec = command_args.collect::<Vec<_>>();
                 let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::RemoveDesk { desk_name })
             }
@@ -248,7 +246,7 @@ impl CommandHandler {
                 }
                 let bind_name = bind_name_option.unwrap();
 
-                let mut desk_name_vec = command_args.collect::<Vec<_>>();
+                let desk_name_vec = command_args.collect::<Vec<_>>();
                 let desk_name = desk_name_vec.join(" ");
                 self.handle(model::Action::CreateBind {
                     bind_name: bind_name.to_string(),
@@ -275,7 +273,9 @@ impl CommandHandler {
     pub fn read_command(&mut self) {
         println!("Please, enter a command: ");
         let mut buffer = String::new();
-        std::io::stdin().read_line(&mut buffer);
+        if let Err(message) = std::io::stdin().read_line(&mut buffer) {
+            println!("Failed to read from stdin: \n\t{}", message);
+        }
 
         if let Err(message) = self.parse_command(buffer) {
             println!("Failed to parse command: \n\t{}", message);

@@ -7,7 +7,6 @@ mod tools;
 
 use pyo3::prelude::*;
 use std::io;
-use std::io::{Read, Write};
 use std::path::PathBuf;
 
 // to handle console commands

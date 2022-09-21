@@ -2,7 +2,7 @@ use crate::fs_lib;
 use crate::model::SpecificDesktop;
 use crate::regchange;
 use crate::tools;
-use std::fs::*;
+// use std::fs::*;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -19,16 +19,16 @@ pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
         .collect())
 }
 
-pub fn first_start(path_of_desktop: &Path, path_of_base: &Path) -> SpecificDesktop {
-    let path_of_base_buf = path_of_base.to_owned();
-    let base_path_for_desktops_buf = path_of_base_buf.join(Path::new("desktops"));
-    let base_path_for_desktops = base_path_for_desktops_buf.as_path();
-
-    // TODO: expect
-    std::fs::create_dir_all(base_path_for_desktops).expect("");
-
-    SpecificDesktop::new("original".to_string(), path_of_desktop.to_owned())
-}
+// pub fn first_start(path_of_desktop: &Path, path_of_base: &Path) -> SpecificDesktop {
+//     let path_of_base_buf = path_of_base.to_owned();
+//     let base_path_for_desktops_buf = path_of_base_buf.join(Path::new("desktops"));
+//     let base_path_for_desktops = base_path_for_desktops_buf.as_path();
+//
+//     // TODO: expect
+//     std::fs::create_dir_all(base_path_for_desktops).expect("");
+//
+//     SpecificDesktop::new("original".to_string(), path_of_desktop.to_owned())
+// }
 
 // TODO: Expects
 pub fn allocate_new_common_desktop(
@@ -37,8 +37,8 @@ pub fn allocate_new_common_desktop(
 ) -> Result<(), String> {
     let mut desktops_path_buf: PathBuf = path_of_base.to_owned();
     desktops_path_buf.push("desktops");
-    let mut new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(desktop_name));
-    let mut new_desktop_path = new_desktop_path_buf.as_path();
+    let new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(desktop_name));
+    let new_desktop_path = new_desktop_path_buf.as_path();
 
     if new_desktop_path.is_dir() {
         return Err("Desktop with this name exists".to_owned());
@@ -100,7 +100,7 @@ pub fn remove_common_desktop(desktop_name: &String, path_of_base: &Path) -> Resu
 }
 
 fn base_remove_desktop(desktop_path: &Path) -> Result<(), String> {
-    let mut files: Vec<_> = files_of(desktop_path).expect("Can't read files from current desktop");
+    let files: Vec<_> = files_of(desktop_path).expect("Can't read files from current desktop");
 
     for file in files {
         if fs_lib::remove_entity_as_path(file.as_path()).is_err() {
