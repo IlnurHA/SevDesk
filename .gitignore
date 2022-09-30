@@ -1,3 +1,4 @@
 \.idea
 \target
 Cargo.lock
+base_data_file.txt

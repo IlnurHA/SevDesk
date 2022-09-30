@@ -1,6 +1,8 @@
 // use crate::fs_lib;
+use crate::data_manager::{write_specific_desktop_data_file, write_to_bind_data_file};
 use crate::logic;
 use crate::model;
+use crate::model::SpecificDesktop;
 use crate::tools;
 use pyo3::prelude::*;
 use std::path::PathBuf;
@@ -15,7 +17,11 @@ pub struct CommandHandler {
 }
 
 impl CommandHandler {
-    pub fn new(base_path: PathBuf) -> Self {
+    pub fn new(
+        base_path: PathBuf,
+        binds: Vec<(String, String)>,
+        specific_desktops: Vec<SpecificDesktop>,
+    ) -> Self {
         let current_desktop = "original".to_string();
 
         // TODO: Add loading of settings
@@ -25,10 +31,10 @@ impl CommandHandler {
 
         Self {
             current_desktop,
-            specific_desktops: vec![],
+            specific_desktops,
             base_path,
             desktops_path,
-            binds: vec![],
+            binds,
         }
     }
 
@@ -104,6 +110,10 @@ impl CommandHandler {
                 ) {
                     Ok(desktop) => {
                         self.specific_desktops.push(desktop);
+                        write_specific_desktop_data_file(
+                            self.base_path.as_path(),
+                            &self.specific_desktops,
+                        )?;
                         Ok(())
                     }
                     Err(x) => Err(x),
@@ -122,10 +132,11 @@ impl CommandHandler {
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
-                return if let Some(specific_desktop) =
-                    tools::find(&self.specific_desktops, desk_name.clone(), |x| x.name)
+                return if let Some((specific_desktop, index)) =
+                    tools::find_with_index(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
-                    logic::remove_specific_desktop(&specific_desktop)
+                    self.specific_desktops.remove(index);
+                    return logic::remove_specific_desktop(&specific_desktop);
                 } else if tools::find(
                     &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
                     desk_name.clone(),
@@ -158,6 +169,7 @@ impl CommandHandler {
                 }
 
                 self.binds.push((bind_name, desk_name));
+                write_to_bind_data_file(&self.binds, self.base_path.as_path())?;
                 Ok(())
             }
             model::Action::UseBind { bind_name } => {
@@ -169,6 +181,7 @@ impl CommandHandler {
             model::Action::RemoveBind { bind_name } => {
                 if let Some((_, index)) = tools::find_with_index(&self.binds, bind_name, |x| x.0) {
                     self.binds.swap_remove(index);
+                    write_to_bind_data_file(&self.binds, self.base_path.as_path())?;
                     return Ok(());
                 }
                 Err("Bind with this name does not exist".to_string())
