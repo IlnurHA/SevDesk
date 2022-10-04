@@ -39,7 +39,7 @@ pub fn write_specific_desktop_data_file(
     let mut file = file.map_err(|_| String::from("Cannot create file"))?;
 
     for item in specific_desktops {
-        write!(file, "{}>>{}", item.path.to_str().unwrap(), item.name)
+        write!(file, "{}>>{}\n", item.path.to_str().unwrap(), item.name)
             .map_err(|_| String::from("Cannot write to file"))?;
     }
     Ok(())
@@ -110,7 +110,7 @@ pub fn write_to_bind_data_file(
         .map_err(|_| String::from("Cannot open file"))?;
 
     for (bind_name, desk_name) in binds {
-        write!(file, "{} {}", bind_name, desk_name)
+        write!(file, "{} {}\n", bind_name, desk_name)
             .map_err(|_| String::from("Cannot write to binds file"))?;
     }
 

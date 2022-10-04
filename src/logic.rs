@@ -115,3 +115,17 @@ fn base_remove_desktop(desktop_path: &Path) -> Result<(), String> {
     }
     Ok(())
 }
+
+pub fn get_common_desktop(desktops_path: &Path, desk_name: String) -> Option<PathBuf> {
+    tools::find(
+        &files_of(desktops_path).expect("Desktop path is corrupted"),
+        desk_name.clone(),
+        |x| {
+            x.file_name()
+                .expect("desktops path is corrupted")
+                .to_os_string()
+                .into_string()
+                .expect("Cannot make String from OsString")
+        },
+    )
+}
