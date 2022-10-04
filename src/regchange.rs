@@ -1,3 +1,4 @@
+use crate::py_scripts;
 use pyo3::prelude::*;
 
 pub fn change_desktop_path(new_desktop_path: &String) {
@@ -5,22 +6,30 @@ pub fn change_desktop_path(new_desktop_path: &String) {
     Python::with_gil(|py| {
         let py_script = PyModule::from_code(
             py,
-            r#"
-def change_desktop_path(new_desktop_path):
-    import winreg
-
-    path_to_desktop_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"
-    desktop_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path_to_desktop_value, 0, winreg.KEY_WRITE)
-    winreg.SetValueEx(desktop_key, "Desktop", 0, winreg.REG_EXPAND_SZ, new_desktop_path)
-    winreg.CloseKey(desktop_key)
-        "#,
+            py_scripts::CHANGE_DESKTOP_REGEDIT,
             "winreg_py",
             "winreg_py",
-        ).expect("Cannot read python script");
+        )
+        .expect("Cannot read python script");
         py_script
             .getattr("change_desktop_path")
             .expect("Cannot get function 'change_desktop_name' from python script")
             .call1((new_desktop_path,))
             .expect("Cannot call py function");
     });
+}
+pub fn get_current_desktop_path() -> Result<String, String> {
+    pyo3::prepare_freethreaded_python();
+    let py_result: PyResult<String> = Python::with_gil(|py| {
+        let py_script = PyModule::from_code(
+            py,
+            py_scripts::CURRENT_DESKTOP_PATH,
+            "winreg_py",
+            "winreg_py",
+        )?;
+        py_script.getattr("change_desktop_path")?.call0()?;
+        py_script.extract()
+    });
+
+    py_result.map_err(|_| String::from("Cannot read current desktop path"))
 }

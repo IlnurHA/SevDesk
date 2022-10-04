@@ -3,6 +3,7 @@ mod data_manager;
 mod fs_lib;
 mod logic;
 mod model;
+mod py_scripts;
 mod regchange;
 mod tools;
 
@@ -31,25 +32,10 @@ fn read_line() -> String {
 //      restrictions for name of desktops (?)
 fn main() {
     pyo3::prepare_freethreaded_python();
-    let py_script_for_elevation = r#"
-def elevation():
-    import ctypes, sys
-
-    def is_admin():
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
-
-    if not is_admin():
-        # Re-run the program with admin rights
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
-        exit(0)
-        "#;
     let result_python: PyResult<()> = {
         Python::with_gil(|py| -> PyResult<()> {
             let py_script =
-                PyModule::from_code(py, py_script_for_elevation, "elevation", "elevation")?;
+                PyModule::from_code(py, py_scripts::ELEVATION, "elevation", "elevation")?;
             py_script.getattr("elevation")?.call0()?;
             Ok(())
         })
