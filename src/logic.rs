@@ -129,3 +129,16 @@ pub fn get_common_desktop(desktops_path: &Path, desk_name: String) -> Option<Pat
         },
     )
 }
+
+pub fn get_current_desktop() -> Result<(String, PathBuf), String> {
+    let path = PathBuf::from(regchange::get_current_desktop_path()?);
+
+    let name = String::from(
+        path.file_name()
+            .expect("Cannot read current desktop name")
+            .to_str()
+            .expect("Cannot read current desktop name"),
+    );
+
+    Ok((name, path))
+}

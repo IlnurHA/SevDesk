@@ -90,14 +90,14 @@ impl CommandHandler {
             }
             model::Action::RemoveDesk { desk_name } => {
                 // TODO: Handling removing of current desktop
-                // if desk_name == self.current_desktop {
-                //     match self.handle(model::Action::ChangeDesk {
-                //         desk_name: "blank".to_string(),
-                //     }) {
-                //         Err(message) => return Err(message),
-                //         Ok(_) => (),
-                //     }
-                // }
+                if desk_name == logic::get_current_desktop()?.0 {
+                    match self.handle(model::Action::ChangeDesk {
+                        desk_name: String::from("blank"),
+                    }) {
+                        Err(message) => return Err(message),
+                        Ok(_) => (),
+                    }
+                }
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
