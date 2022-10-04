@@ -9,7 +9,6 @@ use std::path::PathBuf;
 
 // binds is a vector that contains item of key and value ( binds: [(<bind_name>, <desk_name>)] )
 pub struct CommandHandler {
-    pub current_desktop: String,
     pub specific_desktops: Vec<model::SpecificDesktop>,
     pub base_path: PathBuf,
     pub desktops_path: PathBuf,
@@ -22,15 +21,10 @@ impl CommandHandler {
         binds: Vec<(String, String)>,
         specific_desktops: Vec<SpecificDesktop>,
     ) -> Self {
-        let current_desktop = "original".to_string();
-
-        // TODO: Add loading of settings
-
         let mut desktops_path: PathBuf = base_path.clone();
         desktops_path.push("desktops");
 
         Self {
-            current_desktop,
             specific_desktops,
             base_path,
             desktops_path,
@@ -46,14 +40,9 @@ impl CommandHandler {
                     desk_name.clone(),
                     |x: model::SpecificDesktop| x.name,
                 ) {
-                    match logic::change_specific_desktop(&specific_desktop) {
-                        Ok(_) => {
-                            CommandHandler::reboot_explorer();
-                            self.current_desktop = desk_name.clone();
-                            Ok(())
-                        }
-                        err => err,
-                    }
+                    logic::change_specific_desktop(&specific_desktop)?;
+                    CommandHandler::reboot_explorer();
+                    Ok(())
                 } else if tools::find(
                     &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
                     desk_name.clone(),
@@ -67,31 +56,17 @@ impl CommandHandler {
                 )
                 .is_some()
                 {
-                    match logic::change_common_desktop(&desk_name, &self.base_path) {
-                        Ok(_) => {
-                            CommandHandler::reboot_explorer();
-                            self.current_desktop = desk_name.clone();
-                            Ok(())
-                        }
-                        err => err,
-                    }
+                    logic::change_common_desktop(&desk_name, &self.base_path)?;
+                    CommandHandler::reboot_explorer();
+                    Ok(())
                 } else {
                     if desk_name == "blank".to_string() {
-                        match self.handle(model::Action::CreateDesk {
+                        self.handle(model::Action::CreateDesk {
                             desk_name: desk_name.clone(),
-                        }) {
-                            Ok(_) => {
-                                match logic::change_common_desktop(&desk_name, &self.base_path) {
-                                    Ok(_) => {
-                                        CommandHandler::reboot_explorer();
-                                        self.current_desktop = desk_name.clone();
-                                        Ok(())
-                                    }
-                                    err => err,
-                                }
-                            }
-                            err => err,
-                        }
+                        })?;
+                        logic::change_common_desktop(&desk_name, &self.base_path)?;
+                        CommandHandler::reboot_explorer();
+                        Ok(())
                     } else {
                         return Err("There is no such desktop".to_string());
                     }
@@ -101,54 +76,38 @@ impl CommandHandler {
                 logic::allocate_new_common_desktop(&desk_name, &self.base_path)
             }
             model::Action::CreateSpecificDesktop { desk_name, path } => {
-                // TODO: Add saving specific desktops
-
-                match logic::allocate_new_specific_desktop(
+                let desktop = logic::allocate_new_specific_desktop(
                     &desk_name,
                     &path,
                     &self.specific_desktops,
-                ) {
-                    Ok(desktop) => {
-                        self.specific_desktops.push(desktop);
-                        write_specific_desktop_data_file(
-                            self.base_path.as_path(),
-                            &self.specific_desktops,
-                        )?;
-                        Ok(())
-                    }
-                    Err(x) => Err(x),
-                }
+                )?;
+                self.specific_desktops.push(desktop);
+                write_specific_desktop_data_file(
+                    self.base_path.as_path(),
+                    &self.specific_desktops,
+                )?;
+                Ok(())
             }
             model::Action::RemoveDesk { desk_name } => {
-                // Handling removing of current desktop
-                if desk_name == self.current_desktop {
-                    match self.handle(model::Action::ChangeDesk {
-                        desk_name: "blank".to_string(),
-                    }) {
-                        Err(message) => return Err(message),
-                        Ok(_) => (),
-                    }
-                }
+                // TODO: Handling removing of current desktop
+                // if desk_name == self.current_desktop {
+                //     match self.handle(model::Action::ChangeDesk {
+                //         desk_name: "blank".to_string(),
+                //     }) {
+                //         Err(message) => return Err(message),
+                //         Ok(_) => (),
+                //     }
+                // }
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
-                return if let Some((specific_desktop, index)) =
+                return if let Some((_, index)) =
                     tools::find_with_index(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
                     self.specific_desktops.remove(index);
-                    return logic::remove_specific_desktop(&specific_desktop);
-                } else if tools::find(
-                    &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
-                    desk_name.clone(),
-                    |x| {
-                        x.file_name()
-                            .expect("desktops path is corrupted")
-                            .to_os_string()
-                            .into_string()
-                            .expect("Cannot make String from OsString")
-                    },
-                )
-                .is_some()
+                    return Ok(());
+                } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
+                    .is_some()
                 {
                     logic::remove_common_desktop(&desk_name, self.base_path.as_path())
                 } else {
@@ -192,18 +151,8 @@ impl CommandHandler {
     fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
         if tools::find(&self.specific_desktops, desk_name.clone(), |x| x.name).is_some() {
             return true;
-        } else if tools::find(
-            &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
-            desk_name.clone(),
-            |x| {
-                x.file_name()
-                    .expect("desktops path is corrupted")
-                    .to_os_string()
-                    .into_string()
-                    .expect("Cannot make String from OsString")
-            },
-        )
-        .is_some()
+        } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
+            .is_some()
         {
             return true;
         }
