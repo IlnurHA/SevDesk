@@ -130,6 +130,12 @@ pub fn get_common_desktop(desktops_path: &Path, desk_name: String) -> Option<Pat
     )
 }
 
+pub fn get_specific_desktop(
+    desktops: &Vec<SpecificDesktop>,
+    desk_name: String,
+) -> Option<SpecificDesktop> {
+    tools::find(&desktops, desk_name.clone(), |x: SpecificDesktop| x.name)
+}
 pub fn get_current_desktop() -> Result<(String, PathBuf), String> {
     let path = PathBuf::from(regchange::get_current_desktop_path()?);
 

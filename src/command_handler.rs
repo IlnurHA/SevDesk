@@ -1,6 +1,7 @@
 // use crate::fs_lib;
 use crate::data_manager::{write_specific_desktop_data_file, write_to_bind_data_file};
 use crate::logic;
+use crate::logic::{get_common_desktop, get_specific_desktop};
 use crate::model;
 use crate::model::SpecificDesktop;
 use crate::tools;
@@ -35,32 +36,20 @@ impl CommandHandler {
     pub fn handle(&mut self, command: model::Action) -> Result<(), String> {
         match command {
             model::Action::ChangeDesk { desk_name } => {
-                if let Some(specific_desktop) = tools::find(
-                    &self.specific_desktops,
-                    desk_name.clone(),
-                    |x: model::SpecificDesktop| x.name,
-                ) {
+                if let Some(specific_desktop) =
+                    get_specific_desktop(&self.specific_desktops, desk_name.clone())
+                {
                     logic::change_specific_desktop(&specific_desktop)?;
                     CommandHandler::reboot_explorer();
                     Ok(())
-                } else if tools::find(
-                    &logic::files_of(&self.desktops_path).expect("Desktop path is corrupted"),
-                    desk_name.clone(),
-                    |x: PathBuf| {
-                        x.file_name()
-                            .expect("Cannot find name of given path")
-                            .to_str()
-                            .expect("Cannot convert &str from PathBuf")
-                            .to_string()
-                    },
-                )
-                .is_some()
+                } else if get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
+                    .is_some()
                 {
                     logic::change_common_desktop(&desk_name, &self.base_path)?;
                     CommandHandler::reboot_explorer();
                     Ok(())
                 } else {
-                    if desk_name == "blank".to_string() {
+                    if desk_name == String::from("blank") {
                         self.handle(model::Action::CreateDesk {
                             desk_name: desk_name.clone(),
                         })?;
@@ -76,6 +65,10 @@ impl CommandHandler {
                 logic::allocate_new_common_desktop(&desk_name, &self.base_path)
             }
             model::Action::CreateSpecificDesktop { desk_name, path } => {
+                if !path.is_dir() {
+                    return Err(String::from("No such directory"));
+                }
+
                 let desktop = logic::allocate_new_specific_desktop(
                     &desk_name,
                     &path,
@@ -91,12 +84,9 @@ impl CommandHandler {
             model::Action::RemoveDesk { desk_name } => {
                 // TODO: Handling removing of current desktop
                 if desk_name == logic::get_current_desktop()?.0 {
-                    match self.handle(model::Action::ChangeDesk {
+                    self.handle(model::Action::ChangeDesk {
                         desk_name: String::from("blank"),
-                    }) {
-                        Err(message) => return Err(message),
-                        Ok(_) => (),
-                    }
+                    })?;
                 }
 
                 // Trying to find desktops from specific desktops
@@ -104,8 +94,8 @@ impl CommandHandler {
                 return if let Some((_, index)) =
                     tools::find_with_index(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
-                    self.specific_desktops.remove(index);
-                    return Ok(());
+                    self.specific_desktops.swap_remove(index);
+                    Ok(())
                 } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
                     .is_some()
                 {
@@ -135,7 +125,7 @@ impl CommandHandler {
                 if let Some((_, desk_name)) = tools::find(&self.binds, bind_name, |x| x.0) {
                     return self.handle(model::Action::ChangeDesk { desk_name });
                 }
-                Err("Bind with this name does not exist".to_string())
+                Err(String::from("Bind with this name does not exist"))
             }
             model::Action::RemoveBind { bind_name } => {
                 if let Some((_, index)) = tools::find_with_index(&self.binds, bind_name, |x| x.0) {
@@ -143,13 +133,13 @@ impl CommandHandler {
                     write_to_bind_data_file(&self.binds, self.base_path.as_path())?;
                     return Ok(());
                 }
-                Err("Bind with this name does not exist".to_string())
+                Err(String::from("Bind with this name does not exist"))
             }
         }
     }
 
     fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
-        if tools::find(&self.specific_desktops, desk_name.clone(), |x| x.name).is_some() {
+        if logic::get_specific_desktop(&self.specific_desktops, desk_name.clone()).is_some() {
             return true;
         } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
             .is_some()
@@ -167,7 +157,7 @@ impl CommandHandler {
     // iter.next() parser
     pub fn parse_command(&mut self, command: String) -> Result<(), String> {
         if command == "" {
-            return Err("No command".to_string());
+            return Err(String::from("No command"));
         }
         let mut command_args = command.split_ascii_whitespace();
         match command_args
@@ -175,59 +165,101 @@ impl CommandHandler {
             .expect("There should be at least one word")
         {
             "change_desk" => {
-                let desk_name_vec = command_args.collect::<Vec<_>>();
-                let desk_name = desk_name_vec.join(" ");
+                let desk_name_option = command_args.next();
+
+                if desk_name_option.is_none() {
+                    return Err(String::from("There should be one more argument"));
+                }
+
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
+                }
+
+                let desk_name = String::from(desk_name_option.unwrap());
+
                 self.handle(model::Action::ChangeDesk { desk_name })
             }
-            "create_desk" => self.handle(model::Action::CreateDesk {
-                desk_name: command_args.collect::<String>(),
-            }),
-            "create_specific_desk" => {
-                let path_option = command_args.next();
-                if path_option.is_none() {
-                    return Err("There should be one more argument".to_string());
-                }
-                let path = path_option.unwrap();
+            "create_desk" => {
+                let desk_name_option = command_args.next();
 
-                let desk_name_vec = command_args.collect::<Vec<_>>();
-                let desk_name = desk_name_vec.join(" ");
-                self.handle(model::Action::CreateSpecificDesktop {
-                    desk_name,
-                    path: PathBuf::from(path),
-                })
+                if desk_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
+                }
+
+                let desk_name = String::from(desk_name_option.unwrap());
+
+                self.handle(model::Action::CreateDesk { desk_name })
+            }
+            "create_specific_desk" => {
+                let desk_name_option = command_args.next();
+
+                if desk_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                let desk_name = String::from(desk_name_option.unwrap());
+
+                let path = PathBuf::from(command_args.collect::<Vec<_>>().join(" "));
+
+                self.handle(model::Action::CreateSpecificDesktop { desk_name, path })
             }
             "remove_desk" => {
-                let desk_name_vec = command_args.collect::<Vec<_>>();
-                let desk_name = desk_name_vec.join(" ");
+                let desk_name_option = command_args.next();
+
+                if desk_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
+                }
+
+                let desk_name = String::from(desk_name_option.unwrap());
+
                 self.handle(model::Action::RemoveDesk { desk_name })
             }
             "bind" => {
                 let bind_name_option = command_args.next();
-                if bind_name_option.is_none() {
-                    return Err("There should be one more argument".to_string());
-                }
-                let bind_name = bind_name_option.unwrap();
 
-                let desk_name_vec = command_args.collect::<Vec<_>>();
-                let desk_name = desk_name_vec.join(" ");
+                if bind_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                let desk_name_option = command_args.next();
+
+                if desk_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
+                }
+
+                let bind_name = String::from(bind_name_option.unwrap());
+                let desk_name = String::from(desk_name_option.unwrap());
+
                 self.handle(model::Action::CreateBind {
-                    bind_name: bind_name.to_string(),
+                    bind_name,
                     desk_name,
                 })
             }
             "unbind" => {
                 let bind_name_option = command_args.next();
-                if bind_name_option.is_none() {
-                    return Err("There should be one more argument".to_string());
-                }
-                let bind_name = bind_name_option.unwrap();
 
-                self.handle(model::Action::RemoveBind {
-                    bind_name: bind_name.to_string(),
-                })
+                if bind_name_option.is_none() {
+                    return Err(String::from("Too few arguments"));
+                }
+
+                let bind_name = String::from(bind_name_option.unwrap());
+
+                self.handle(model::Action::RemoveBind { bind_name })
             }
             bind_name => self.handle(model::Action::UseBind {
-                bind_name: bind_name.to_string(),
+                bind_name: String::from(bind_name),
             }),
         }
     }

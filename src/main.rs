@@ -1,3 +1,5 @@
+extern crate core;
+
 mod command_handler;
 mod data_manager;
 mod fs_lib;
