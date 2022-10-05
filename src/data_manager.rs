@@ -39,7 +39,7 @@ pub fn write_specific_desktop_data_file(
     let mut file = file.map_err(|_| String::from("Cannot create file"))?;
 
     for item in specific_desktops {
-        write!(file, "{}>>{}\n", item.path.to_str().unwrap(), item.name)
+        write!(file, "{}>>{}\n", item.name, item.path.to_str().unwrap())
             .map_err(|_| String::from("Cannot write to file"))?;
     }
     Ok(())
@@ -81,15 +81,15 @@ fn get_specific_desktops(reader: BufReader<File>) -> Vec<SpecificDesktop> {
     for line in reader.lines() {
         if let Ok(arguments) = line {
             let mut arguments = arguments.split(">>");
-            let path = arguments.next();
+            let name = arguments.next();
 
-            if path.is_none() {
+            if name.is_none() {
                 break;
             }
 
             specific_desktops.push(SpecificDesktop::new(
-                arguments.collect(),
-                PathBuf::from(path.unwrap()),
+                String::from(name.unwrap()),
+                PathBuf::from(arguments.collect::<Vec<&str>>().join(" ")),
             ));
         }
     }
