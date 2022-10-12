@@ -40,3 +40,11 @@ def get_current_desktop_path():
             return value
         i += 1
 "#;
+
+pub const REBOOT_EXPLORER: &str = r#"
+def reboot_explorer():
+    import os
+
+    os.system("taskkill /f /im explorer.exe")
+    os.system("start explorer.exe")
+    "#;
