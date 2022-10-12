@@ -37,4 +37,9 @@ pub enum Action {
     RemoveBind {
         bind_name: String,
     },
+
+    DeskList,
+    CommandsList,
+    BindsList,
+    ClearCommandLine,
 }

@@ -6,6 +6,7 @@ use crate::model;
 use crate::model::SpecificDesktop;
 use crate::py_scripts;
 use crate::tools;
+use pyo3::gc::clear;
 use pyo3::prelude::*;
 use std::path::PathBuf;
 
@@ -136,6 +137,71 @@ impl CommandHandler {
                 }
                 Err(String::from("Bind with this name does not exist"))
             }
+            model::Action::DeskList => {
+                println!("Common desktops:");
+
+                for desk in logic::files_of(self.desktops_path.as_path())
+                    .map_err(|_| String::from("Cannot read files"))?
+                {
+                    if desk.is_dir() {
+                        println!(
+                            "\t{}",
+                            desk.file_name()
+                                .ok_or(String::from("Cannot read file name"))?
+                                .to_str()
+                                .ok_or(String::from("Cannot convert to str"))?
+                        );
+                    }
+                }
+
+                println!("Specific desktops:");
+                for SpecificDesktop { name, path } in &self.specific_desktops {
+                    println!(
+                        "\t{} - {}",
+                        name,
+                        path.to_str()
+                            .ok_or(String::from("Cannot convert to string"))?
+                    );
+                }
+
+                Ok(())
+            }
+            model::Action::BindsList => {
+                if self.binds.is_empty() {
+                    println!("No binds");
+                    return Ok(());
+                }
+
+                println!("Binds:");
+                for (bind_name, desk_name) in &self.binds {
+                    println!("\t{} - {}", bind_name, desk_name);
+                }
+
+                Ok(())
+            }
+            model::Action::ClearCommandLine => {
+                clearscreen::clear().map_err(|_| "Cannot clear screen".to_string())?;
+                Ok(())
+            }
+            // Hardcoded for now
+            model::Action::CommandsList => {
+                println!("Commands:");
+                println!("\tcreate_desk (or cd) <desk_name> \tcreate common desk in base with <desk_name>");
+                println!("\tcreate_specific_desk <desk_name> <path> \tcreate specific desktop with <desk_name> and <path>");
+                println!("\tremove_desk <desk_name> \tremoves desk and files if it is a common desk and removes specific desk name from system");
+                println!("\tbind <bind_name> <desk_name> \tcreates <bind_name> for desk with <desk_name>");
+                println!("\tunbind <bind_name> \tdeletes bind from system");
+                println!("\tdesk_list (or dl) \tprints all desktops");
+                println!("\tbinds_list (or bl) \tprints all binds");
+                println!("\thelp \tprints all commands");
+                println!("\tclear \tclearing command line");
+                println!("\t<bind_name> \ttry to switch to desk with bind <bind_name>");
+
+                println!("If command doesn't match to any command above, it will try to use bind");
+                println!("For now, it is possible to bind with name as command");
+
+                Ok(())
+            }
         }
     }
 
@@ -243,6 +309,10 @@ impl CommandHandler {
 
                 self.handle(model::Action::RemoveBind { bind_name })
             }
+            "desk_list" | "dl" => self.handle(model::Action::DeskList),
+            "bind_list" | "bl" => self.handle(model::Action::BindsList),
+            "clear" => self.handle(model::Action::ClearCommandLine),
+            "help" => self.handle(model::Action::CommandsList),
             bind_name => self.handle(model::Action::UseBind {
                 bind_name: String::from(bind_name),
             }),
