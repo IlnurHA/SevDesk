@@ -4,6 +4,7 @@ use crate::logic;
 use crate::logic::{get_common_desktop, get_specific_desktop};
 use crate::model;
 use crate::model::SpecificDesktop;
+use crate::py_scripts;
 use crate::tools;
 use pyo3::prelude::*;
 use std::path::PathBuf;
@@ -162,85 +163,71 @@ impl CommandHandler {
         let mut command_args = command.split_ascii_whitespace();
         match command_args
             .next()
-            .expect("There should be at least one word")
+            .ok_or(String::from("There should be at least one word"))?
         {
-            "change_desk" => {
-                let desk_name_option = command_args.next();
-
-                if desk_name_option.is_none() {
-                    return Err(String::from("There should be one more argument"));
-                }
+            "change_desk" | "cd" => {
+                let desk_name = String::from(
+                    command_args
+                        .next()
+                        .ok_or(String::from("There should be one more argument"))?,
+                );
 
                 if command_args.next().is_some() {
                     return Err(String::from("Too many arguments"));
                 }
-
-                let desk_name = String::from(desk_name_option.unwrap());
 
                 self.handle(model::Action::ChangeDesk { desk_name })
             }
             "create_desk" => {
-                let desk_name_option = command_args.next();
-
-                if desk_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
-                }
+                let desk_name = String::from(
+                    command_args
+                        .next()
+                        .ok_or(String::from("Too few arguments"))?,
+                );
 
                 if command_args.next().is_some() {
                     return Err(String::from("Too many arguments"));
                 }
 
-                let desk_name = String::from(desk_name_option.unwrap());
-
                 self.handle(model::Action::CreateDesk { desk_name })
             }
             "create_specific_desk" => {
-                let desk_name_option = command_args.next();
-
-                if desk_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
-                }
-
-                let desk_name = String::from(desk_name_option.unwrap());
-
+                let desk_name = command_args
+                    .next()
+                    .ok_or(String::from("Too few arguments"))?
+                    .to_string();
                 let path = PathBuf::from(command_args.collect::<Vec<_>>().join(" "));
 
                 self.handle(model::Action::CreateSpecificDesktop { desk_name, path })
             }
             "remove_desk" => {
-                let desk_name_option = command_args.next();
-
-                if desk_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
-                }
+                let desk_name = String::from(
+                    command_args
+                        .next()
+                        .ok_or(String::from("Too few arguments"))?,
+                );
 
                 if command_args.next().is_some() {
                     return Err(String::from("Too many arguments"));
                 }
-
-                let desk_name = String::from(desk_name_option.unwrap());
 
                 self.handle(model::Action::RemoveDesk { desk_name })
             }
             "bind" => {
-                let bind_name_option = command_args.next();
-
-                if bind_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
-                }
-
-                let desk_name_option = command_args.next();
-
-                if desk_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
-                }
+                let bind_name = String::from(
+                    command_args
+                        .next()
+                        .ok_or(String::from("Too few arguments"))?,
+                );
+                let desk_name = String::from(
+                    command_args
+                        .next()
+                        .ok_or(String::from("Too few arguments"))?,
+                );
 
                 if command_args.next().is_some() {
                     return Err(String::from("Too many arguments"));
                 }
-
-                let bind_name = String::from(bind_name_option.unwrap());
-                let desk_name = String::from(desk_name_option.unwrap());
 
                 self.handle(model::Action::CreateBind {
                     bind_name,
@@ -248,13 +235,11 @@ impl CommandHandler {
                 })
             }
             "unbind" => {
-                let bind_name_option = command_args.next();
+                let bind_name = String::from(command_args.next().ok_or("Too few arguments")?);
 
-                if bind_name_option.is_none() {
-                    return Err(String::from("Too few arguments"));
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
                 }
-
-                let bind_name = String::from(bind_name_option.unwrap());
 
                 self.handle(model::Action::RemoveBind { bind_name })
             }
@@ -283,13 +268,7 @@ impl CommandHandler {
         Python::with_gil(|py| {
             let py_script = PyModule::from_code(
                 py,
-                r#"
-def reboot_explorer():
-    import os
-
-    os.system("taskkill /f /im explorer.exe")
-    os.system("start explorer.exe")
-    "#,
+                py_scripts::REBOOT_EXPLORER,
                 "explorer_reboot",
                 "explorer_reboot",
             )
