@@ -28,9 +28,7 @@ fn read_line() -> String {
 }
 
 // TODO:
-//      'open' and 'help' commands
 //      convenient command creation
-//      python scripts in separate file
 //      restrictions for name of desktops (?)
 fn main() {
     pyo3::prepare_freethreaded_python();

@@ -42,4 +42,7 @@ pub enum Action {
     CommandsList,
     BindsList,
     ClearCommandLine,
+    OpenInExplorer {
+        desk_name: String,
+    },
 }

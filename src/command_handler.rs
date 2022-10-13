@@ -1,4 +1,3 @@
-// use crate::fs_lib;
 use crate::data_manager::{write_specific_desktop_data_file, write_to_bind_data_file};
 use crate::logic;
 use crate::logic::{get_common_desktop, get_specific_desktop};
@@ -6,9 +5,9 @@ use crate::model;
 use crate::model::SpecificDesktop;
 use crate::py_scripts;
 use crate::tools;
-use pyo3::gc::clear;
 use pyo3::prelude::*;
 use std::path::PathBuf;
+use std::process::Command;
 
 // binds is a vector that contains item of key and value ( binds: [(<bind_name>, <desk_name>)] )
 pub struct CommandHandler {
@@ -183,6 +182,27 @@ impl CommandHandler {
                 clearscreen::clear().map_err(|_| "Cannot clear screen".to_string())?;
                 Ok(())
             }
+            model::Action::OpenInExplorer { desk_name } => {
+                let mut openning_desk = String::new();
+
+                if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
+                    .is_some()
+                {
+                    openning_desk = self.desktops_path.join(desk_name).display().to_string();
+                } else if let Some(desk_path) =
+                    logic::get_specific_desktop(&self.specific_desktops, desk_name.clone())
+                {
+                    openning_desk = desk_path.path.display().to_string();
+                } else {
+                    return Err("No such desktop".to_string());
+                }
+
+                Command::new("explorer")
+                    .arg(openning_desk)
+                    .spawn()
+                    .map_err(|_| "Cannot open file through explorer".to_string())?;
+                Ok(())
+            }
             // Hardcoded for now
             model::Action::CommandsList => {
                 println!("Commands:");
@@ -195,10 +215,15 @@ impl CommandHandler {
                 println!("\tbinds_list (or bl) \tprints all binds");
                 println!("\thelp \tprints all commands");
                 println!("\tclear \tclearing command line");
+                println!("\topen <desk_name> \topens desktop directory in explorer");
                 println!("\t<bind_name> \ttry to switch to desk with bind <bind_name>");
 
                 println!("If command doesn't match to any command above, it will try to use bind");
                 println!("For now, it is possible to bind with name as command");
+
+                println!(
+                    "This is hardcoded help. So, if something is missing, you can make an issue"
+                );
 
                 Ok(())
             }
@@ -313,6 +338,15 @@ impl CommandHandler {
             "bind_list" | "bl" => self.handle(model::Action::BindsList),
             "clear" => self.handle(model::Action::ClearCommandLine),
             "help" => self.handle(model::Action::CommandsList),
+            "open" => {
+                let desk_name = String::from(command_args.next().ok_or("Too few arguments")?);
+
+                if command_args.next().is_some() {
+                    return Err(String::from("Too many arguments"));
+                }
+
+                self.handle(model::Action::OpenInExplorer { desk_name })
+            }
             bind_name => self.handle(model::Action::UseBind {
                 bind_name: String::from(bind_name),
             }),
