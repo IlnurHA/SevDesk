@@ -16,9 +16,9 @@ pub fn write_base_data_file(base_path: &String) -> Result<(), String> {
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
-        .open(base_data_file_name);
+        .open(base_data_file_name)
+        .map_err(|_| String::from("Cannot create file"))?;
 
-    let mut file = file.map_err(|_| String::from("Cannot create file"))?;
     write!(file, "{}", base_path).map_err(|_| String::from("Cannot write to file"))?;
 
     Ok(())
@@ -31,7 +31,7 @@ pub fn write_specific_desktop_data_file(
     let mut new_path = PathBuf::from(base_path);
     new_path.push(SPECIFIC_PATHS_FILE_NAME);
 
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
         .write(true)
         .create(true)
         .open(new_path.as_path());
@@ -155,10 +155,10 @@ pub fn create_binds_data_file(base_path: &Path) -> Result<(), String> {
     create_file(path.as_path())
 }
 
-pub fn create_base_data_file() -> Result<(), String> {
-    let path = PathBuf::from(BASE_PATH_FILE_NAME);
-    create_file(path.as_path())
-}
+// pub fn create_base_data_file() -> Result<(), String> {
+//     let path = PathBuf::from(BASE_PATH_FILE_NAME);
+//     create_file(path.as_path())
+// }
 
 pub fn create_specific_desktops_data_file(base_path: &Path) -> Result<(), String> {
     let path = base_path.join(SPECIFIC_PATHS_FILE_NAME);

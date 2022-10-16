@@ -3,9 +3,7 @@ use crate::logic;
 use crate::logic::{get_common_desktop, get_specific_desktop};
 use crate::model;
 use crate::model::SpecificDesktop;
-use crate::py_scripts;
 use crate::tools;
-use pyo3::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -41,13 +39,13 @@ impl CommandHandler {
                     get_specific_desktop(&self.specific_desktops, desk_name.clone())
                 {
                     logic::change_specific_desktop(&specific_desktop)?;
-                    CommandHandler::reboot_explorer();
+                    CommandHandler::reboot_explorer()?;
                     Ok(())
                 } else if get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
                     .is_some()
                 {
                     logic::change_common_desktop(&desk_name, &self.base_path)?;
-                    CommandHandler::reboot_explorer();
+                    CommandHandler::reboot_explorer()?;
                     Ok(())
                 } else {
                     if desk_name == String::from("blank") {
@@ -55,7 +53,7 @@ impl CommandHandler {
                             desk_name: desk_name.clone(),
                         })?;
                         logic::change_common_desktop(&desk_name, &self.base_path)?;
-                        CommandHandler::reboot_explorer();
+                        CommandHandler::reboot_explorer()?;
                         Ok(())
                     } else {
                         return Err("There is no such desktop".to_string());
@@ -183,7 +181,7 @@ impl CommandHandler {
                 Ok(())
             }
             model::Action::OpenInExplorer { desk_name } => {
-                let mut openning_desk = String::new();
+                let openning_desk;
 
                 if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
                     .is_some()
@@ -367,21 +365,23 @@ impl CommandHandler {
         }
     }
 
-    pub fn reboot_explorer() {
-        pyo3::prepare_freethreaded_python();
-        Python::with_gil(|py| {
-            let py_script = PyModule::from_code(
-                py,
-                py_scripts::REBOOT_EXPLORER,
-                "explorer_reboot",
-                "explorer_reboot",
-            )
-            .expect("Cannot read python script");
-            py_script
-                .getattr("reboot_explorer")
-                .expect("Cannot get function 'reboot_explorer' from python script")
-                .call0()
-                .expect("Cannot call py function");
-        });
+    pub fn reboot_explorer() -> Result<(), String> {
+        Command::new("cmd")
+            .args(["/C", "taskkill", "/f", "/im", "explorer.exe"])
+            .spawn()
+            .map_err(|_| "Cannot kill explorer.exe".to_string())?
+            .wait()
+            .map_err(|_| "Cannot kill explorer".to_string())?;
+
+        Command::new("cmd")
+            .arg("/C")
+            .arg("start")
+            .arg("explorer.exe")
+            .spawn()
+            .map_err(|_| "Cannot start explorer.exe".to_string())?
+            .wait()
+            .map_err(|_| "Cannot start explorer.exe".to_string())?;
+
+        Ok(())
     }
 }

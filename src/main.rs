@@ -5,16 +5,14 @@ mod data_manager;
 mod fs_lib;
 mod logic;
 mod model;
-mod py_scripts;
 mod regchange;
 mod tools;
 
 use crate::data_manager::{
     create_binds_data_file, create_specific_desktops_data_file, is_base_data_file_exist,
     is_binds_data_dile_exist, is_specific_data_file_exist, load_info, read_base,
-    write_base_data_file, write_to_bind_data_file,
+    write_base_data_file,
 };
-use pyo3::prelude::*;
 use std::io;
 use std::path::PathBuf;
 
@@ -31,24 +29,12 @@ fn read_line() -> String {
 //      convenient command creation
 //      restrictions for name of desktops (?)
 fn main() {
-    pyo3::prepare_freethreaded_python();
-    let result_python: PyResult<()> = {
-        Python::with_gil(|py| -> PyResult<()> {
-            let py_script =
-                PyModule::from_code(py, py_scripts::ELEVATION, "elevation", "elevation")?;
-            py_script.getattr("elevation")?.call0()?;
-            Ok(())
-        })
-        .expect("Don't have admin privileges");
-        Ok(())
-    };
-
-    if result_python.is_err() {
-        println!("Elevation for admin privileges has failed");
+    if !regchange::is_admin().expect("Cannot get admin privileges") {
+        regchange::restart_as_admin().expect("Cannot get admin privileges");
         return;
     }
 
-    let mut base_path = String::new();
+    let mut base_path;
 
     if !is_base_data_file_exist() {
         loop {
