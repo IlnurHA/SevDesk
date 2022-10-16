@@ -2,7 +2,6 @@ use crate::fs_lib;
 use crate::model::SpecificDesktop;
 use crate::regchange;
 use crate::tools;
-// use std::fs::*;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -82,13 +81,8 @@ fn base_change_desktop(path_buf: PathBuf) -> Result<(), String> {
     }
 
     let path = path_buf.to_str().expect("").to_string();
-    regchange::change_desktop_path(&path);
+    regchange::change_desktop_path(&path)?;
     Ok(())
-}
-
-// TODO: removal of files and directories of current desktop
-pub fn remove_specific_desktop(desktop: &SpecificDesktop) -> Result<(), String> {
-    base_remove_desktop(&desktop.path)
 }
 
 pub fn remove_common_desktop(desktop_name: &String, path_of_base: &Path) -> Result<(), String> {
