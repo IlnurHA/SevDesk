@@ -7,6 +7,7 @@ mod logic;
 mod model;
 mod regchange;
 mod tools;
+mod shortcuts;
 
 use crate::data_manager::{
     create_binds_data_file, create_specific_desktops_data_file, is_base_data_file_exist,
@@ -33,6 +34,7 @@ fn main() {
         regchange::restart_as_admin().expect("Cannot get admin privileges");
         return;
     }
+    clearscreen::clear().expect("Cannot clear screen");
 
     let mut base_path;
 

@@ -216,7 +216,7 @@ impl CommandHandler {
                 println!("\topen <desk_name> \topens desktop directory in explorer");
                 println!("\t<bind_name> \ttry to switch to desk with bind <bind_name>");
 
-                println!("If command doesn't match to any command above, it will try to use bind");
+                println!("If command doesn't match any command above, it will try to use bind");
                 println!("For now, it is possible to bind with name as command");
 
                 println!(

@@ -11,3 +11,4 @@ clearscreen = "1.0.10"
 process_path = "0.1.4"
 winsafe = { version = "0.0.11", features = ["user", "shell"] }
 winreg = "0.10.1"
+rdev = "0.5.1"

@@ -18,17 +18,6 @@ pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
         .collect())
 }
 
-// pub fn first_start(path_of_desktop: &Path, path_of_base: &Path) -> SpecificDesktop {
-//     let path_of_base_buf = path_of_base.to_owned();
-//     let base_path_for_desktops_buf = path_of_base_buf.join(Path::new("desktops"));
-//     let base_path_for_desktops = base_path_for_desktops_buf.as_path();
-//
-//     // TODO: expect
-//     std::fs::create_dir_all(base_path_for_desktops).expect("");
-//
-//     SpecificDesktop::new("original".to_string(), path_of_desktop.to_owned())
-// }
-
 // TODO: Expects
 pub fn allocate_new_common_desktop(
     desktop_name: &String,
@@ -40,10 +29,11 @@ pub fn allocate_new_common_desktop(
     let new_desktop_path = new_desktop_path_buf.as_path();
 
     if new_desktop_path.is_dir() {
-        return Err("Desktop with this name exists".to_owned());
+        return Err("Desktop with this name exists".to_string());
     }
 
-    std::fs::create_dir_all(&new_desktop_path).expect("");
+    std::fs::create_dir_all(&new_desktop_path)
+        .map_err(|_| "Cannot create directory for new desktop".to_string())?;
 
     Ok(())
 }
