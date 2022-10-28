@@ -40,20 +40,38 @@ pub fn is_admin() -> Result<bool, String> {
     Ok(status.success())
 }
 
-pub fn restart_as_admin() -> Result<(), String> {
+pub fn restart_as_admin(parameters: Option<String>) -> Result<(), String> {
     std::process::Command::new("cmd").args(["/C", "runas"]);
+    if parameters.is_some() {
+        let arguments_string = parameters.unwrap().clone();
+        let arguments = Some(arguments_string.as_str());
 
-    HWND::DESKTOP
-        .ShellExecute(
-            "runas",
-            &process_path::get_executable_path()
-                .ok_or("Cannot get process path".to_string())?
-                .display()
-                .to_string(),
-            None,
-            None,
-            winsafe::co::SW::SHOWDEFAULT,
-        )
-        .map_err(|_| "Cannot start program with admin priveleges".to_string())?;
+        HWND::DESKTOP
+            .ShellExecute(
+                "runas",
+                &process_path::get_executable_path()
+                    .ok_or("Cannot get process path".to_string())?
+                    .display()
+                    .to_string(),
+                arguments,
+                None,
+                winsafe::co::SW::SHOWDEFAULT,
+            )
+            .map_err(|_| "Cannot start program with admin privileges".to_string())?;
+    } else {
+        HWND::DESKTOP
+            .ShellExecute(
+                "runas",
+                &process_path::get_executable_path()
+                    .ok_or("Cannot get process path".to_string())?
+                    .display()
+                    .to_string(),
+                None,
+                None,
+                winsafe::co::SW::SHOWDEFAULT,
+            )
+            .map_err(|_| "Cannot start program with admin privileges".to_string())?;
+    }
+
     Ok(())
 }

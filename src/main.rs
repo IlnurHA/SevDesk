@@ -6,16 +6,18 @@ mod fs_lib;
 mod logic;
 mod model;
 mod regchange;
-mod tools;
 mod shortcuts;
+mod tools;
 
 use crate::data_manager::{
     create_binds_data_file, create_specific_desktops_data_file, is_base_data_file_exist,
     is_binds_data_dile_exist, is_specific_data_file_exist, load_info, read_base,
     write_base_data_file,
 };
-use std::io;
+// use crate::shortcuts;
+use crate::shortcuts::{AppManager, KeyBoardState};
 use std::path::PathBuf;
+use std::{env, io};
 
 // to handle console commands
 fn read_line() -> String {
@@ -26,12 +28,20 @@ fn read_line() -> String {
     buffer.trim().to_string()
 }
 
+fn get_env_arguments() -> Option<String> {
+    let mut arguments = env::args();
+    if arguments.next().is_none() {
+        return None;
+    }
+    return Some(arguments.collect::<Vec<String>>().join(" "));
+}
+
 // TODO:
 //      convenient command creation
 //      restrictions for name of desktops (?)
 fn main() {
     if !regchange::is_admin().expect("Cannot get admin privileges") {
-        regchange::restart_as_admin().expect("Cannot get admin privileges");
+        regchange::restart_as_admin(get_env_arguments()).expect("Cannot get admin privileges");
         return;
     }
     clearscreen::clear().expect("Cannot clear screen");
@@ -74,7 +84,9 @@ fn main() {
     println!("System loaded!");
     let mut command_handler =
         command_handler::CommandHandler::new(path_buf, binds, specific_desktops);
-    loop {
-        command_handler.read_command();
-    }
+
+    let mut app_manager: AppManager = shortcuts::AppManager::new();
+
+    app_manager.process_parameters(get_env_arguments(), &mut command_handler);
+    app_manager.start_program(&mut command_handler, KeyBoardState::new());
 }
