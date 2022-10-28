@@ -25,7 +25,7 @@ pub struct AppManager {}
 
 impl AppManager {
     pub fn new() -> Self {
-        Self
+        Self {}
     }
 
     pub fn process_parameters(
@@ -36,6 +36,8 @@ impl AppManager {
         if parameters.is_none() {
             return;
         }
+
+        println!("Executing prescribed commands");
 
         for command in parameters.unwrap().split(";").collect::<Vec<_>>() {
             if let Err(message) = command_handler.parse_command(command.to_string()) {
