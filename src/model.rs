@@ -45,4 +45,8 @@ pub enum Action {
     OpenInExplorer {
         desk_name: String,
     },
+    AddToAutoStart {
+        commands: String, // Commands separated by ';'
+    },
+    RemoveFromAutoStart,
 }

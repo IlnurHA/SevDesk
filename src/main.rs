@@ -11,10 +11,11 @@ mod tools;
 
 use crate::data_manager::{
     create_binds_data_file, create_specific_desktops_data_file, is_base_data_file_exist,
-    is_binds_data_dile_exist, is_specific_data_file_exist, load_info, read_base,
+    is_binds_data_file_exist, is_specific_data_file_exist, load_info, read_base,
     write_base_data_file,
 };
 // use crate::shortcuts;
+use crate::logic::get_current_desktop;
 use crate::shortcuts::{AppManager, KeyBoardState};
 use std::path::PathBuf;
 use std::{env, io};
@@ -40,12 +41,6 @@ fn get_env_arguments() -> Option<String> {
 //      convenient command creation
 //      restrictions for name of desktops (?)
 fn main() {
-    if !regchange::is_admin().expect("Cannot get admin privileges") {
-        regchange::restart_as_admin(get_env_arguments()).expect("Cannot get admin privileges");
-        return;
-    }
-    clearscreen::clear().expect("Cannot clear screen");
-
     let mut base_path;
 
     if !is_base_data_file_exist() {
@@ -75,7 +70,7 @@ fn main() {
         create_specific_desktops_data_file(path_buf.as_path()).expect("Cannot create file");
     }
 
-    if !is_binds_data_dile_exist(path_buf.as_path()) {
+    if !is_binds_data_file_exist(path_buf.as_path()) {
         create_binds_data_file(path_buf.as_path()).expect("Cannot create file");
     }
 
@@ -84,6 +79,36 @@ fn main() {
     println!("System loaded!");
     let mut command_handler =
         command_handler::CommandHandler::new(path_buf, binds, specific_desktops);
+
+    let (desk_name, desk_path) = get_current_desktop().expect("Cannot read current desktop");
+    if !(command_handler.existence_of_desktop_with_name_of(&desk_name)
+        || command_handler.existence_of_specific_desktop_with_path(desk_path.as_path()))
+    {
+        loop {
+            println!(
+                "Current desktop is not available for this program. Do you want to add it? (Y/N)"
+            );
+            let answer = read_line();
+            if answer.to_uppercase() == "Y" {
+                println!("Please enter name for this desktop (it should be one word)");
+
+                let mut desk_name = read_line();
+                while command_handler
+                    .parse_command(format!(
+                        "create_specific_desk {} {}",
+                        desk_name,
+                        desk_path.display()
+                    ))
+                    .is_err()
+                {
+                    println!("Please enter another name");
+                    desk_name = read_line();
+                }
+            } else if answer.to_uppercase() == "N" {
+                break;
+            }
+        }
+    }
 
     let mut app_manager: AppManager = shortcuts::AppManager::new();
 
