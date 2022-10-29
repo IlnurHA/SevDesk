@@ -1,10 +1,10 @@
 use crate::data_manager::{write_specific_desktop_data_file, write_to_bind_data_file};
-use crate::logic;
 use crate::logic::{get_common_desktop, get_specific_desktop};
 use crate::model;
 use crate::model::SpecificDesktop;
 use crate::tools;
-use std::path::PathBuf;
+use crate::{logic, regchange};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 // binds is a vector that contains item of key and value ( binds: [(<bind_name>, <desk_name>)] )
@@ -201,34 +201,44 @@ impl CommandHandler {
                     .map_err(|_| "Cannot open file through explorer".to_string())?;
                 Ok(())
             }
-            // Hardcoded for now
+            model::Action::AddToAutoStart { commands } => regchange::add_to_autostart(commands),
+            model::Action::RemoveFromAutoStart => regchange::remove_from_autostart(),
+
             model::Action::CommandsList => {
                 println!("Commands:");
-                println!("\tcreate_desk (or cd) <desk_name> \tcreate common desk in base with <desk_name>");
-                println!("\tcreate_specific_desk <desk_name> <path> \tcreate specific desktop with <desk_name> and <path>");
-                println!("\tremove_desk <desk_name> \tremoves desk and files if it is a common desk and removes specific desk name from system");
-                println!("\tbind <bind_name> <desk_name> \tcreates <bind_name> for desk with <desk_name>");
-                println!("\tunbind <bind_name> \tdeletes bind from system");
-                println!("\tdesk_list (or dl) \tprints all desktops");
-                println!("\tbinds_list (or bl) \tprints all binds");
-                println!("\thelp \tprints all commands");
-                println!("\tclear \tclearing command line");
-                println!("\topen <desk_name> \topens desktop directory in explorer");
+                println!("\tcreate_desk (or cd) <desk_name> - create common desk in base with <desk_name>");
+                println!("\tcreate_specific_desk <desk_name> <path> - create specific desktop with <desk_name> and <path>");
+                println!("\tremove_desk <desk_name> - removes desk and files if it is a common desk and removes specific desk name from system");
+                println!("\tbind <bind_name> <desk_name> - creates <bind_name> for desk with <desk_name>");
+                println!("\tunbind <bind_name> - deletes bind from system");
+                println!("\tdesk_list (or dl) - prints all desktops");
+                println!("\tbinds_list (or bl) - prints all binds");
+                println!("\thelp - prints all commands");
+                println!("\tclear - clearing command line");
+                println!("\topen <desk_name> - opens desktop directory in explorer");
+                println!("\tadd_to_autostart <command>;<command>;...; - adds SevDesk to autostart as well as add commands to be executed with windows start");
+                println!("\t\tExample:\n\t\t\t 'add_to_start cd blank;clear' - with this command on windows start console will change desk to blank and clear console");
+                println!("\tremove_from_autostart - removes SevDesk from autostart");
                 println!("\t<bind_name> \ttry to switch to desk with bind <bind_name>");
 
-                println!("If command doesn't match any command above, it will try to use bind");
+                println!(
+                    "If command doesn't match any command above, it will try to use it as a bind"
+                );
                 println!("For now, it is possible to bind with name as command");
 
-                println!(
-                    "This is hardcoded help. So, if something is missing, you can make an issue"
-                );
+                println!("Hotkeys");
+                println!("Hotkeys are used to change desktops without entering a command.");
+                println!("To use it press: \n\tLCTRL+ALT+LSHIFT+<NUMBER>");
+                println!("Program will try to change desktop to the bind with <NUMBER>");
+                println!("Example:\n\tLCTRL+ALT+LSHIFT+2 \n\twill be the same as execute following command in console:");
+                println!("\t\t'2' (it will use bind)");
 
                 Ok(())
             }
         }
     }
 
-    fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
+    pub fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
         if logic::get_specific_desktop(&self.specific_desktops, desk_name.clone()).is_some() {
             return true;
         } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
@@ -237,6 +247,13 @@ impl CommandHandler {
             return true;
         }
         false
+    }
+
+    pub fn existence_of_specific_desktop_with_path(&self, desk_path: &Path) -> bool {
+        self.specific_desktops
+            .clone()
+            .into_iter()
+            .any(|desk| desk.path.eq(&desk_path.to_owned()))
     }
 
     fn existence_of_bind_with_name_of(&self, bind_name: &String) -> bool {
@@ -345,6 +362,13 @@ impl CommandHandler {
 
                 self.handle(model::Action::OpenInExplorer { desk_name })
             }
+            "add_to_autostart" => self.handle(model::Action::AddToAutoStart {
+                commands: command_args
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(" "),
+            }),
+            "remove_from_autostart" => self.handle(model::Action::RemoveFromAutoStart),
             bind_name => self.handle(model::Action::UseBind {
                 bind_name: String::from(bind_name),
             }),

@@ -53,7 +53,7 @@ pub fn is_specific_data_file_exist(base_path: &Path) -> bool {
     base_path.join(SPECIFIC_PATHS_FILE_NAME).is_file()
 }
 
-pub fn is_binds_data_dile_exist(base_path: &Path) -> bool {
+pub fn is_binds_data_file_exist(base_path: &Path) -> bool {
     base_path.join(BINDS_FILE_NAME).is_file()
 }
 
