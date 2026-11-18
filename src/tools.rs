@@ -3,8 +3,7 @@ pub fn find_with_index<T: Clone, K: Eq, F: Fn(T) -> K>(
     key: K,
     transition: F,
 ) -> Option<(T, usize)> {
-    for i in 0..array.len() {
-        let item = &array[i];
+    for (i, item) in array.iter().enumerate() {
         if key == transition(item.to_owned()) {
             return Some((item.clone(), i));
         }
