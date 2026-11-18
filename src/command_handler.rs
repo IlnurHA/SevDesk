@@ -56,7 +56,7 @@ impl CommandHandler {
                         CommandHandler::reboot_explorer()?;
                         Ok(())
                     } else {
-                        return Err("There is no such desktop".to_string());
+                        Err("There is no such desktop".to_string())
                     }
                 }
             }
@@ -90,7 +90,7 @@ impl CommandHandler {
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
-                return if let Some((_, index)) =
+                if let Some((_, index)) =
                     tools::find_with_index(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
                     self.specific_desktops.swap_remove(index);
@@ -101,7 +101,7 @@ impl CommandHandler {
                     logic::remove_common_desktop(&desk_name, self.base_path.as_path())
                 } else {
                     Err("There is no such desktop".to_string())
-                };
+                }
             }
 
             model::Action::CreateBind {

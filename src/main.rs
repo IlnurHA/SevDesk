@@ -31,10 +31,8 @@ fn read_line() -> String {
 
 fn get_env_arguments() -> Option<String> {
     let mut arguments = env::args();
-    if arguments.next().is_none() {
-        return None;
-    }
-    return Some(arguments.collect::<Vec<String>>().join(" "));
+    arguments.next()?;
+    Some(arguments.collect::<Vec<String>>().join(" "))
 }
 
 // TODO:
