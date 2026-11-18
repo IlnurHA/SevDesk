@@ -202,7 +202,11 @@ impl CommandHandler {
                 Ok(())
             }
             model::Action::AddToAutoStart { commands } => regchange::add_to_autostart(commands),
-            model::Action::RemoveFromAutoStart => regchange::remove_from_autostart(),
+            model::Action::RemoveFromAutoStart => if regchange::is_in_autostart()? { 
+                regchange::remove_from_autostart()
+            } else {
+                Err("Cannot remove app from autostart: no app found".to_string())
+            }
 
             model::Action::CommandsList => {
                 println!("Commands:");
@@ -365,20 +369,6 @@ impl CommandHandler {
             bind_name => self.handle(model::Action::UseBind {
                 bind_name: String::from(bind_name),
             }),
-        }
-    }
-
-    pub fn read_command(&mut self) {
-        println!("Please, enter a command: ");
-        let mut buffer = String::new();
-        if let Err(message) = std::io::stdin().read_line(&mut buffer) {
-            println!("Failed to read from stdin: \n\t{}", message);
-        }
-
-        if let Err(message) = self.parse_command(buffer) {
-            println!("Failed to parse command: \n\t{}", message);
-        } else {
-            println!("Command successfully handled!");
         }
     }
 
