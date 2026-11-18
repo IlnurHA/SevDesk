@@ -78,20 +78,18 @@ pub fn read_specific_desktops(base_path: &Path) -> Result<Vec<SpecificDesktop>, 
 fn get_specific_desktops(reader: BufReader<File>) -> Vec<SpecificDesktop> {
     let mut specific_desktops: Vec<SpecificDesktop> = vec![];
 
-    for line in reader.lines() {
-        if let Ok(arguments) = line {
-            let mut arguments = arguments.split(">>");
-            let name = arguments.next();
+    for arguments in reader.lines().map_while(Result::ok) {
+        let mut arguments = arguments.split(">>");
+        let name = arguments.next();
 
-            if name.is_none() {
-                break;
-            }
-
-            specific_desktops.push(SpecificDesktop::new(
-                String::from(name.unwrap()),
-                PathBuf::from(arguments.collect::<Vec<&str>>().join(" ")),
-            ));
+        if name.is_none() {
+            break;
         }
+
+        specific_desktops.push(SpecificDesktop::new(
+            String::from(name.unwrap()),
+            PathBuf::from(arguments.collect::<Vec<&str>>().join(" ")),
+        ));
     }
 
     specific_desktops
@@ -133,8 +131,7 @@ pub fn read_binds(base_path: &Path) -> Result<Vec<(String, String)>, String> {
 fn get_binds(reader: BufReader<File>) -> Vec<(String, String)> {
     let mut binds: Vec<(String, String)> = vec![];
 
-    for line in reader.lines() {
-        if let Ok(arguments) = line {
+    for arguments in reader.lines().map_while(Result::ok) {
             let mut arguments = arguments.split_whitespace();
             let bind_name = arguments.next();
 
@@ -144,7 +141,6 @@ fn get_binds(reader: BufReader<File>) -> Vec<(String, String)> {
 
             binds.push((String::from(bind_name.unwrap()), arguments.collect()));
         }
-    }
 
     binds
 }
