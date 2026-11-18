@@ -8,6 +8,9 @@ const SPECIFIC_PATHS_FILE_NAME: &str = "specific_desktops_data_file.txt";
 const BASE_PATH_FILE_NAME: &str = "base_data_file.txt";
 const BINDS_FILE_NAME: &str = "binds.txt";
 
+type Binds = Vec<(String, String)>;
+type SpecificDesktops = Vec<SpecificDesktop>;
+
 /// 1st file stores info about base
 /// 2nd file stores info about specific desktops
 pub fn write_base_data_file(base_path: &String) -> Result<(), String> {
@@ -172,6 +175,6 @@ fn create_file(path: &Path) -> Result<(), String> {
 
 pub fn load_info(
     base_path: &Path,
-) -> Result<(Vec<(String, String)>, Vec<SpecificDesktop>), String> {
+) -> Result<(Binds, SpecificDesktops), String> {
     Ok((read_binds(base_path)?, read_specific_desktops(base_path)?))
 }
