@@ -19,10 +19,7 @@ pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
 }
 
 // TODO: Expects
-pub fn allocate_new_common_desktop(
-    desktop_name: &str,
-    path_of_base: &Path,
-) -> Result<(), String> {
+pub fn allocate_new_common_desktop(desktop_name: &str, path_of_base: &Path) -> Result<(), String> {
     let mut desktops_path_buf: PathBuf = path_of_base.to_owned();
     desktops_path_buf.push("desktops");
     let new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(desktop_name));

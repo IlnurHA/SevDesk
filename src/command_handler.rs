@@ -202,10 +202,12 @@ impl CommandHandler {
                 Ok(())
             }
             model::Action::AddToAutoStart { commands } => regchange::add_to_autostart(commands),
-            model::Action::RemoveFromAutoStart => if regchange::is_in_autostart()? { 
-                regchange::remove_from_autostart()
-            } else {
-                Err("Cannot remove app from autostart: no app found".to_string())
+            model::Action::RemoveFromAutoStart => {
+                if regchange::is_in_autostart()? {
+                    regchange::remove_from_autostart()
+                } else {
+                    Err("Cannot remove app from autostart: no app found".to_string())
+                }
             }
 
             model::Action::CommandsList => {
@@ -243,7 +245,9 @@ impl CommandHandler {
     }
 
     pub fn existence_of_desktop_with_name_of(&self, desk_name: &str) -> bool {
-        logic::get_specific_desktop(&self.specific_desktops, desk_name.to_string()).is_some() || logic::get_common_desktop(self.desktops_path.as_path(), desk_name.to_string()).is_some()
+        logic::get_specific_desktop(&self.specific_desktops, desk_name.to_string()).is_some()
+            || logic::get_common_desktop(self.desktops_path.as_path(), desk_name.to_string())
+                .is_some()
     }
 
     pub fn existence_of_specific_desktop_with_path(&self, desk_path: &Path) -> bool {

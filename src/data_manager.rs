@@ -138,15 +138,15 @@ fn get_binds(reader: BufReader<File>) -> Vec<(String, String)> {
     let mut binds: Vec<(String, String)> = vec![];
 
     for arguments in reader.lines().map_while(Result::ok) {
-            let mut arguments = arguments.split_whitespace();
-            let bind_name = arguments.next();
+        let mut arguments = arguments.split_whitespace();
+        let bind_name = arguments.next();
 
-            if bind_name.is_none() {
-                break;
-            }
-
-            binds.push((String::from(bind_name.unwrap()), arguments.collect()));
+        if bind_name.is_none() {
+            break;
         }
+
+        binds.push((String::from(bind_name.unwrap()), arguments.collect()));
+    }
 
     binds
 }
@@ -176,8 +176,6 @@ fn create_file(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-pub fn load_info(
-    base_path: &Path,
-) -> Result<(Binds, SpecificDesktops), String> {
+pub fn load_info(base_path: &Path) -> Result<(Binds, SpecificDesktops), String> {
     Ok((read_binds(base_path)?, read_specific_desktops(base_path)?))
 }

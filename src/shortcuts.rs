@@ -64,7 +64,9 @@ impl AppManager {
         thread::spawn(move || {
             if listen(move |event: Event| {
                 AppManager::callback(keyboard_arc.clone(), keyboard.clone(), event)
-            }).is_err() {
+            })
+            .is_err()
+            {
                 println!("Cannot listen keyboard");
             }
         });
