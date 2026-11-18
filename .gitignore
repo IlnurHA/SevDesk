@@ -1,4 +1,5 @@
-\.idea
-\target
-Cargo.lock
+.idea/
+.vscode/
+target/
 base_data_file.txt
+resource.aps
