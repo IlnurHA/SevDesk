@@ -62,7 +62,7 @@ pub fn change_common_desktop(desktop: &String, path_of_base: &Path) -> Result<()
 }
 
 pub fn change_specific_desktop(desktop: &SpecificDesktop) -> Result<(), String> {
-    base_change_desktop(PathBuf::from(desktop.path.clone()))
+    base_change_desktop(desktop.path.clone())
 }
 
 fn base_change_desktop(path_buf: PathBuf) -> Result<(), String> {
