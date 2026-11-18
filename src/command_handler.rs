@@ -48,7 +48,7 @@ impl CommandHandler {
                     CommandHandler::reboot_explorer()?;
                     Ok(())
                 } else {
-                    if desk_name == String::from("blank") {
+                    if desk_name == "blank" {
                         self.handle(model::Action::CreateDesk {
                             desk_name: desk_name.clone(),
                         })?;
