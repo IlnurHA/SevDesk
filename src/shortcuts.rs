@@ -62,9 +62,9 @@ impl AppManager {
         let keyboard = Arc::new(Mutex::new(keyboard_state));
 
         thread::spawn(move || {
-            if let Err(_) = listen(move |event: Event| {
+            if listen(move |event: Event| {
                 AppManager::callback(keyboard_arc.clone(), keyboard.clone(), event)
-            }) {
+            }).is_err() {
                 println!("Cannot listen keyboard");
             }
         });
