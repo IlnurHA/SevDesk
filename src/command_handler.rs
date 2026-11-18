@@ -48,7 +48,7 @@ impl CommandHandler {
                     CommandHandler::reboot_explorer()?;
                     Ok(())
                 } else {
-                    if desk_name == String::from("blank") {
+                    if desk_name == "blank" {
                         self.handle(model::Action::CreateDesk {
                             desk_name: desk_name.clone(),
                         })?;
@@ -56,7 +56,7 @@ impl CommandHandler {
                         CommandHandler::reboot_explorer()?;
                         Ok(())
                     } else {
-                        return Err("There is no such desktop".to_string());
+                        Err("There is no such desktop".to_string())
                     }
                 }
             }
@@ -90,7 +90,7 @@ impl CommandHandler {
 
                 // Trying to find desktops from specific desktops
                 // and then from common desktops that are stored in base path
-                return if let Some((_, index)) =
+                if let Some((_, index)) =
                     tools::find_with_index(&self.specific_desktops, desk_name.clone(), |x| x.name)
                 {
                     self.specific_desktops.swap_remove(index);
@@ -101,7 +101,7 @@ impl CommandHandler {
                     logic::remove_common_desktop(&desk_name, self.base_path.as_path())
                 } else {
                     Err("There is no such desktop".to_string())
-                };
+                }
             }
 
             model::Action::CreateBind {
@@ -202,7 +202,13 @@ impl CommandHandler {
                 Ok(())
             }
             model::Action::AddToAutoStart { commands } => regchange::add_to_autostart(commands),
-            model::Action::RemoveFromAutoStart => regchange::remove_from_autostart(),
+            model::Action::RemoveFromAutoStart => {
+                if regchange::is_in_autostart()? {
+                    regchange::remove_from_autostart()
+                } else {
+                    Err("Cannot remove app from autostart: no app found".to_string())
+                }
+            }
 
             model::Action::CommandsList => {
                 println!("Commands:");
@@ -238,15 +244,10 @@ impl CommandHandler {
         }
     }
 
-    pub fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
-        if logic::get_specific_desktop(&self.specific_desktops, desk_name.clone()).is_some() {
-            return true;
-        } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
-            .is_some()
-        {
-            return true;
-        }
-        false
+    pub fn existence_of_desktop_with_name_of(&self, desk_name: &str) -> bool {
+        logic::get_specific_desktop(&self.specific_desktops, desk_name.to_string()).is_some()
+            || logic::get_common_desktop(self.desktops_path.as_path(), desk_name.to_string())
+                .is_some()
     }
 
     pub fn existence_of_specific_desktop_with_path(&self, desk_path: &Path) -> bool {
@@ -263,7 +264,7 @@ impl CommandHandler {
     // TODO: nertsal_commands
     // iter.next() parser
     pub fn parse_command(&mut self, command: String) -> Result<(), String> {
-        if command == "" {
+        if command.is_empty() {
             return Err(String::from("No command"));
         }
         let mut command_args = command.split_ascii_whitespace();
@@ -372,20 +373,6 @@ impl CommandHandler {
             bind_name => self.handle(model::Action::UseBind {
                 bind_name: String::from(bind_name),
             }),
-        }
-    }
-
-    pub fn read_command(&mut self) {
-        println!("Please, enter a command: ");
-        let mut buffer = String::new();
-        if let Err(message) = std::io::stdin().read_line(&mut buffer) {
-            println!("Failed to read from stdin: \n\t{}", message);
-        }
-
-        if let Err(message) = self.parse_command(buffer) {
-            println!("Failed to parse command: \n\t{}", message);
-        } else {
-            println!("Command successfully handled!");
         }
     }
 

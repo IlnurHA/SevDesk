@@ -19,10 +19,7 @@ pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
 }
 
 // TODO: Expects
-pub fn allocate_new_common_desktop(
-    desktop_name: &String,
-    path_of_base: &Path,
-) -> Result<(), String> {
+pub fn allocate_new_common_desktop(desktop_name: &str, path_of_base: &Path) -> Result<(), String> {
     let mut desktops_path_buf: PathBuf = path_of_base.to_owned();
     desktops_path_buf.push("desktops");
     let new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(desktop_name));
@@ -32,18 +29,18 @@ pub fn allocate_new_common_desktop(
         return Err("Desktop with this name exists".to_string());
     }
 
-    std::fs::create_dir_all(&new_desktop_path)
+    std::fs::create_dir_all(new_desktop_path)
         .map_err(|_| "Cannot create directory for new desktop".to_string())?;
 
     Ok(())
 }
 
 pub fn allocate_new_specific_desktop(
-    desktop_name: &String,
+    desktop_name: &str,
     desktop_path: &Path,
-    specific_desktops: &Vec<SpecificDesktop>,
+    specific_desktops: &[SpecificDesktop],
 ) -> Result<SpecificDesktop, String> {
-    if tools::find_with_index(specific_desktops, desktop_name.clone(), |x| x.name).is_some() {
+    if tools::find_with_index(specific_desktops, desktop_name.to_owned(), |x| x.name).is_some() {
         return Err("Desktop with this name exists".to_string());
     }
 
@@ -53,7 +50,7 @@ pub fn allocate_new_specific_desktop(
     ))
 }
 
-pub fn change_common_desktop(desktop: &String, path_of_base: &Path) -> Result<(), String> {
+pub fn change_common_desktop(desktop: &str, path_of_base: &Path) -> Result<(), String> {
     // Check for existence of current and second desktop
     let mut path: PathBuf = path_of_base.to_owned();
     path.push("desktops");
@@ -62,7 +59,7 @@ pub fn change_common_desktop(desktop: &String, path_of_base: &Path) -> Result<()
 }
 
 pub fn change_specific_desktop(desktop: &SpecificDesktop) -> Result<(), String> {
-    base_change_desktop(PathBuf::from(desktop.path.clone()))
+    base_change_desktop(desktop.path.clone())
 }
 
 fn base_change_desktop(path_buf: PathBuf) -> Result<(), String> {
@@ -75,7 +72,7 @@ fn base_change_desktop(path_buf: PathBuf) -> Result<(), String> {
     Ok(())
 }
 
-pub fn remove_common_desktop(desktop_name: &String, path_of_base: &Path) -> Result<(), String> {
+pub fn remove_common_desktop(desktop_name: &str, path_of_base: &Path) -> Result<(), String> {
     let mut desktop_path: PathBuf = path_of_base.to_owned();
     desktop_path.push("desktops");
     desktop_path.push(desktop_name);
@@ -115,10 +112,10 @@ pub fn get_common_desktop(desktops_path: &Path, desk_name: String) -> Option<Pat
 }
 
 pub fn get_specific_desktop(
-    desktops: &Vec<SpecificDesktop>,
+    desktops: &[SpecificDesktop],
     desk_name: String,
 ) -> Option<SpecificDesktop> {
-    tools::find(&desktops, desk_name.clone(), |x: SpecificDesktop| x.name)
+    tools::find(desktops, desk_name.clone(), |x: SpecificDesktop| x.name)
 }
 pub fn get_current_desktop() -> Result<(String, PathBuf), String> {
     let path = PathBuf::from(regchange::get_current_desktop_path()?);

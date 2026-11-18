@@ -1,4 +1,3 @@
-use winreg;
 use winreg::enums::HKEY_CURRENT_USER;
 use winreg::RegKey;
 

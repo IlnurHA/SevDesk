@@ -62,9 +62,11 @@ impl AppManager {
         let keyboard = Arc::new(Mutex::new(keyboard_state));
 
         thread::spawn(move || {
-            if let Err(_) = listen(move |event: Event| {
+            if listen(move |event: Event| {
                 AppManager::callback(keyboard_arc.clone(), keyboard.clone(), event)
-            }) {
+            })
+            .is_err()
+            {
                 println!("Cannot listen keyboard");
             }
         });
@@ -123,7 +125,7 @@ impl AppManager {
             EventType::KeyPress(key) => {
                 let key_string = AppManager::key_to_string(key);
                 let keyboard = keyboard_state.lock().unwrap();
-                if key_string != ""
+                if !key_string.is_empty()
                     && keyboard.is_left_ctrl_pressed
                     && keyboard.is_left_shift_pressed
                     && keyboard.is_left_alt_pressed

@@ -8,14 +8,18 @@ const SPECIFIC_PATHS_FILE_NAME: &str = "specific_desktops_data_file.txt";
 const BASE_PATH_FILE_NAME: &str = "base_data_file.txt";
 const BINDS_FILE_NAME: &str = "binds.txt";
 
+type Binds = Vec<(String, String)>;
+type SpecificDesktops = Vec<SpecificDesktop>;
+
 /// 1st file stores info about base
 /// 2nd file stores info about specific desktops
-pub fn write_base_data_file(base_path: &String) -> Result<(), String> {
+pub fn write_base_data_file(base_path: &str) -> Result<(), String> {
     let base_data_file_name: String = String::from(BASE_PATH_FILE_NAME);
 
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(base_data_file_name)
         .map_err(|_| String::from("Cannot create file"))?;
 
@@ -34,12 +38,13 @@ pub fn write_specific_desktop_data_file(
     let file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(new_path.as_path());
 
     let mut file = file.map_err(|_| String::from("Cannot create file"))?;
 
     for item in specific_desktops {
-        write!(file, "{}>>{}\n", item.name, item.path.to_str().unwrap())
+        writeln!(file, "{}>>{}", item.name, item.path.to_str().unwrap())
             .map_err(|_| String::from("Cannot write to file"))?;
     }
     Ok(())
@@ -78,20 +83,18 @@ pub fn read_specific_desktops(base_path: &Path) -> Result<Vec<SpecificDesktop>, 
 fn get_specific_desktops(reader: BufReader<File>) -> Vec<SpecificDesktop> {
     let mut specific_desktops: Vec<SpecificDesktop> = vec![];
 
-    for line in reader.lines() {
-        if let Ok(arguments) = line {
-            let mut arguments = arguments.split(">>");
-            let name = arguments.next();
+    for arguments in reader.lines().map_while(Result::ok) {
+        let mut arguments = arguments.split(">>");
+        let name = arguments.next();
 
-            if name.is_none() {
-                break;
-            }
-
-            specific_desktops.push(SpecificDesktop::new(
-                String::from(name.unwrap()),
-                PathBuf::from(arguments.collect::<Vec<&str>>().join(" ")),
-            ));
+        if name.is_none() {
+            break;
         }
+
+        specific_desktops.push(SpecificDesktop::new(
+            String::from(name.unwrap()),
+            PathBuf::from(arguments.collect::<Vec<&str>>().join(" ")),
+        ));
     }
 
     specific_desktops
@@ -106,11 +109,12 @@ pub fn write_to_bind_data_file(
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(binds_path)
         .map_err(|_| String::from("Cannot open file"))?;
 
     for (bind_name, desk_name) in binds {
-        write!(file, "{} {}\n", bind_name, desk_name)
+        writeln!(file, "{} {}", bind_name, desk_name)
             .map_err(|_| String::from("Cannot write to binds file"))?;
     }
 
@@ -133,17 +137,15 @@ pub fn read_binds(base_path: &Path) -> Result<Vec<(String, String)>, String> {
 fn get_binds(reader: BufReader<File>) -> Vec<(String, String)> {
     let mut binds: Vec<(String, String)> = vec![];
 
-    for line in reader.lines() {
-        if let Ok(arguments) = line {
-            let mut arguments = arguments.split_whitespace();
-            let bind_name = arguments.next();
+    for arguments in reader.lines().map_while(Result::ok) {
+        let mut arguments = arguments.split_whitespace();
+        let bind_name = arguments.next();
 
-            if bind_name.is_none() {
-                break;
-            }
-
-            binds.push((String::from(bind_name.unwrap()), arguments.collect()));
+        if bind_name.is_none() {
+            break;
         }
+
+        binds.push((String::from(bind_name.unwrap()), arguments.collect()));
     }
 
     binds
@@ -174,8 +176,6 @@ fn create_file(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-pub fn load_info(
-    base_path: &Path,
-) -> Result<(Vec<(String, String)>, Vec<SpecificDesktop>), String> {
+pub fn load_info(base_path: &Path) -> Result<(Binds, SpecificDesktops), String> {
     Ok((read_binds(base_path)?, read_specific_desktops(base_path)?))
 }
