@@ -1,20 +1,30 @@
-name: Build
+name: Cargo Build & Test
+
+permissions:
+  contents: read
+
 on:
   push:
     branches:
-      - fs_path
+      - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  sonarcloud:
-    name: SonarCloud
-    runs-on: ubuntu-latest
+  build_and_test:
+    name: Build and Test Rust project
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
+      - run: rustup update stable && rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo build --verbose
+      - run: cargo test --verbose
+

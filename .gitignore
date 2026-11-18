@@ -1,0 +1,5 @@
+.idea/
+.vscode/
+target/
+base_data_file.txt
+resource.aps
