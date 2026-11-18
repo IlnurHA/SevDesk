@@ -32,7 +32,7 @@ pub fn allocate_new_common_desktop(
         return Err("Desktop with this name exists".to_string());
     }
 
-    std::fs::create_dir_all(&new_desktop_path)
+    std::fs::create_dir_all(new_desktop_path)
         .map_err(|_| "Cannot create directory for new desktop".to_string())?;
 
     Ok(())
@@ -118,7 +118,7 @@ pub fn get_specific_desktop(
     desktops: &[SpecificDesktop],
     desk_name: String,
 ) -> Option<SpecificDesktop> {
-    tools::find(&desktops, desk_name.clone(), |x: SpecificDesktop| x.name)
+    tools::find(desktops, desk_name.clone(), |x: SpecificDesktop| x.name)
 }
 pub fn get_current_desktop() -> Result<(String, PathBuf), String> {
     let path = PathBuf::from(regchange::get_current_desktop_path()?);
