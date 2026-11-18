@@ -19,6 +19,7 @@ pub fn write_base_data_file(base_path: &String) -> Result<(), String> {
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(base_data_file_name)
         .map_err(|_| String::from("Cannot create file"))?;
 
@@ -37,6 +38,7 @@ pub fn write_specific_desktop_data_file(
     let file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(new_path.as_path());
 
     let mut file = file.map_err(|_| String::from("Cannot create file"))?;
@@ -107,6 +109,7 @@ pub fn write_to_bind_data_file(
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(binds_path)
         .map_err(|_| String::from("Cannot open file"))?;
 
