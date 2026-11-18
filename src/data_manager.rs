@@ -13,7 +13,7 @@ type SpecificDesktops = Vec<SpecificDesktop>;
 
 /// 1st file stores info about base
 /// 2nd file stores info about specific desktops
-pub fn write_base_data_file(base_path: &String) -> Result<(), String> {
+pub fn write_base_data_file(base_path: &str) -> Result<(), String> {
     let base_data_file_name: String = String::from(BASE_PATH_FILE_NAME);
 
     let mut file = OpenOptions::new()
