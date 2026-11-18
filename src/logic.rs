@@ -41,7 +41,7 @@ pub fn allocate_new_common_desktop(
 pub fn allocate_new_specific_desktop(
     desktop_name: &String,
     desktop_path: &Path,
-    specific_desktops: &Vec<SpecificDesktop>,
+    specific_desktops: &[SpecificDesktop],
 ) -> Result<SpecificDesktop, String> {
     if tools::find_with_index(specific_desktops, desktop_name.clone(), |x| x.name).is_some() {
         return Err("Desktop with this name exists".to_string());
@@ -115,7 +115,7 @@ pub fn get_common_desktop(desktops_path: &Path, desk_name: String) -> Option<Pat
 }
 
 pub fn get_specific_desktop(
-    desktops: &Vec<SpecificDesktop>,
+    desktops: &[SpecificDesktop],
     desk_name: String,
 ) -> Option<SpecificDesktop> {
     tools::find(&desktops, desk_name.clone(), |x: SpecificDesktop| x.name)

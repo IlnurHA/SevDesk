@@ -238,10 +238,10 @@ impl CommandHandler {
         }
     }
 
-    pub fn existence_of_desktop_with_name_of(&self, desk_name: &String) -> bool {
-        if logic::get_specific_desktop(&self.specific_desktops, desk_name.clone()).is_some() {
+    pub fn existence_of_desktop_with_name_of(&self, desk_name: &str) -> bool {
+        if logic::get_specific_desktop(&self.specific_desktops, desk_name.to_string()).is_some() {
             return true;
-        } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.clone())
+        } else if logic::get_common_desktop(self.desktops_path.as_path(), desk_name.to_string())
             .is_some()
         {
             return true;
