@@ -263,7 +263,7 @@ impl CommandHandler {
     // TODO: nertsal_commands
     // iter.next() parser
     pub fn parse_command(&mut self, command: String) -> Result<(), String> {
-        if command == "" {
+        if command.is_empty() {
             return Err(String::from("No command"));
         }
         let mut command_args = command.split_ascii_whitespace();
