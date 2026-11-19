@@ -49,6 +49,10 @@ pub fn write_specific_desktop_data_file(
     Ok(())
 }
 
+pub fn is_common_desktops_dir_exist(base_path: &Path) -> bool {
+    base_path.join(DESKTOP_DIR_NAME).is_dir()
+}
+
 pub fn is_base_data_file_exist() -> bool {
     PathBuf::from(BASE_PATH_FILE_NAME).is_file()
 }
@@ -156,14 +160,19 @@ pub fn create_binds_data_file(base_path: &Path) -> Result<(), String> {
     create_file(path.as_path())
 }
 
-// pub fn create_base_data_file() -> Result<(), String> {
-//     let path = PathBuf::from(BASE_PATH_FILE_NAME);
-//     create_file(path.as_path())
-// }
-
 pub fn create_specific_desktops_data_file(base_path: &Path) -> Result<(), String> {
     let path = base_path.join(SPECIFIC_PATHS_FILE_NAME);
     create_file(path.as_path())
+}
+
+pub fn create_base_dir(base_path: &Path) -> Result<(), String> {
+    std::fs::create_dir_all(base_path).map_err(|_| String::from("Cannot create base directory"))
+}
+
+pub fn create_common_desktops_dir(base_path: &Path) -> Result<(), String> {
+    let path = base_path.join(DESKTOP_DIR_NAME);
+    std::fs::create_dir_all(path)
+        .map_err(|_| String::from("Cannot create common desktops directory"))
 }
 
 fn create_file(path: &Path) -> Result<(), String> {

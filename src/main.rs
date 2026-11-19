@@ -10,8 +10,9 @@ mod shortcuts;
 mod tools;
 
 use crate::data_manager::{
-    create_binds_data_file, create_specific_desktops_data_file, is_base_data_file_exist,
-    is_binds_data_file_exist, is_specific_data_file_exist, load_info, read_base,
+    create_base_dir, create_binds_data_file, create_common_desktops_dir,
+    create_specific_desktops_data_file, is_base_data_file_exist, is_binds_data_file_exist,
+    is_common_desktops_dir_exist, is_specific_data_file_exist, load_info, read_base,
     write_base_data_file,
 };
 // use crate::shortcuts;
@@ -50,7 +51,9 @@ fn main() {
                 println!("This dir doesn't exist. Do you want to create it? Y/N");
                 let answer = read_line();
                 if answer.to_uppercase() == "Y" {
-                    std::fs::create_dir_all(PathBuf::from(&base_path)).expect("Cannot create dir");
+                    // create base dir
+                    create_base_dir(&PathBuf::from(&base_path))
+                        .expect("Cannot create base directory");
                     break;
                 }
             } else {
@@ -63,6 +66,10 @@ fn main() {
     }
 
     let path_buf = PathBuf::from(&base_path);
+
+    if !is_common_desktops_dir_exist(path_buf.as_path()) {
+        create_common_desktops_dir(path_buf.as_path()).expect("Cannot create common desktops dir");
+    }
 
     if !is_specific_data_file_exist(path_buf.as_path()) {
         create_specific_desktops_data_file(path_buf.as_path()).expect("Cannot create file");
