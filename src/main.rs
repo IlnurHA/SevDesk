@@ -109,6 +109,7 @@ fn main() {
                     println!("Please enter another name");
                     desk_name = read_line();
                 }
+                break;
             } else if answer.to_uppercase() == "N" {
                 break;
             }
