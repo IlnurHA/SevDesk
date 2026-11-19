@@ -1,7 +1,7 @@
 use crate::data_manager::{write_specific_desktop_data_file, write_to_bind_data_file};
 use crate::logic::{get_common_desktop, get_specific_desktop};
 use crate::model;
-use crate::model::SpecificDesktop;
+use crate::model::{SpecificDesktop, DESKTOP_DIR_NAME};
 use crate::tools;
 use crate::{logic, regchange};
 use std::path::{Path, PathBuf};
@@ -22,7 +22,7 @@ impl CommandHandler {
         specific_desktops: Vec<SpecificDesktop>,
     ) -> Self {
         let mut desktops_path: PathBuf = base_path.clone();
-        desktops_path.push("desktops");
+        desktops_path.push(DESKTOP_DIR_NAME);
 
         Self {
             specific_desktops,

@@ -5,6 +5,8 @@ use crate::tools;
 use std::path::Path;
 use std::path::PathBuf;
 
+use crate::model::DESKTOP_DIR_NAME;
+
 pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
     let path: PathBuf = from_dir.to_owned();
     Ok(fs_lib::files_in_dir(path.as_path())?
@@ -21,7 +23,7 @@ pub fn files_of(from_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
 // TODO: Expects
 pub fn allocate_new_common_desktop(desktop_name: &str, path_of_base: &Path) -> Result<(), String> {
     let mut desktops_path_buf: PathBuf = path_of_base.to_owned();
-    desktops_path_buf.push("desktops");
+    desktops_path_buf.push(DESKTOP_DIR_NAME);
     let new_desktop_path_buf = desktops_path_buf.as_path().join(Path::new(desktop_name));
     let new_desktop_path = new_desktop_path_buf.as_path();
 
@@ -53,7 +55,7 @@ pub fn allocate_new_specific_desktop(
 pub fn change_common_desktop(desktop: &str, path_of_base: &Path) -> Result<(), String> {
     // Check for existence of current and second desktop
     let mut path: PathBuf = path_of_base.to_owned();
-    path.push("desktops");
+    path.push(DESKTOP_DIR_NAME);
     path.push(desktop);
     base_change_desktop(path)
 }
@@ -74,7 +76,7 @@ fn base_change_desktop(path_buf: PathBuf) -> Result<(), String> {
 
 pub fn remove_common_desktop(desktop_name: &str, path_of_base: &Path) -> Result<(), String> {
     let mut desktop_path: PathBuf = path_of_base.to_owned();
-    desktop_path.push("desktops");
+    desktop_path.push(DESKTOP_DIR_NAME);
     desktop_path.push(desktop_name);
 
     base_remove_desktop(&desktop_path)

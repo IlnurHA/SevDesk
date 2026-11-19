@@ -1,12 +1,11 @@
-use crate::model::SpecificDesktop;
+use crate::model::{
+    SpecificDesktop, BASE_PATH_FILE_NAME, BINDS_FILE_NAME, DESKTOP_DIR_NAME,
+    SPECIFIC_PATHS_FILE_NAME,
+};
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-
-const SPECIFIC_PATHS_FILE_NAME: &str = "specific_desktops_data_file.txt";
-const BASE_PATH_FILE_NAME: &str = "base_data_file.txt";
-const BINDS_FILE_NAME: &str = "binds.txt";
 
 type Binds = Vec<(String, String)>;
 type SpecificDesktops = Vec<SpecificDesktop>;

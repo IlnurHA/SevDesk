@@ -1,5 +1,10 @@
 use std::path::PathBuf;
 
+pub const SPECIFIC_PATHS_FILE_NAME: &str = "specific_desktops_data_file.txt";
+pub const BASE_PATH_FILE_NAME: &str = "base_data_file.txt";
+pub const BINDS_FILE_NAME: &str = "binds.txt";
+pub const DESKTOP_DIR_NAME: &str = "desktops";
+
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct SpecificDesktop {
     pub name: String,
